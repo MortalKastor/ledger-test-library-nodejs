@@ -151,12 +151,13 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
 
       wr.wl("obj = local_prototype->NewInstance();")
       wr.wl(s"""$baseClassName *new_obj = new $baseClassName(object);""")
-      wr.wl("if(new_obj)").braced{
+      wr.wl("if(new_obj)").braced {
         wr.wl("new_obj->Wrap(obj);")
         wr.wl("new_obj->Ref();")
       }
     }
-    wr.wl("else").braced{
+
+    wr.wl("else").braced {
       val error = s""""$baseClassName::wrap: object template not valid""""
       wr.wl(s"Nan::ThrowError($error);")
     }

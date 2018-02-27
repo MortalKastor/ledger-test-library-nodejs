@@ -255,7 +255,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
                 val error = s""""$baseClassName::$methodName fail to retrieve node implementation""""
                 w.wl(s"Nan::ThrowError($error);")
               }
-              //auto get_function = Nan::Get(handle,Nan::New<String>("get").ToLocalChecked());
+
               val quotedMethod = s""""$methodName""""
               w.wl(s"auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>($quotedMethod).ToLocalChecked()).ToLocalChecked();")
               w.wl("auto handle = this->handle();")
@@ -264,7 +264,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
                 val error = s""""$baseClassName::$methodName call failed""""
                 w.wl(s"Nan::ThrowError($error);")
               }
-
 
               if(m.ret.isDefined && ret != "void"){
                 w.wl(s"auto checkedResult_$methodName = result_$methodName.ToLocalChecked();")

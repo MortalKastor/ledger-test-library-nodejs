@@ -341,9 +341,9 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       case MMap => "Map"
       case d: MDef =>
         d.defType match {
-          case DEnum => withNamespace(idNode.enumType(d.name), namespace, scopeSymbols)
-          case DRecord => withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
-          case DInterface => withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
+          case DEnum => withNamespace(idCpp.enumType(d.name), namespace, scopeSymbols)
+          case DRecord => withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)
+          case DInterface => withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)
         }
       case e: MExtern => e.defType match {
         case DInterface => s"std::shared_ptr<${e.cpp.typename}>"
