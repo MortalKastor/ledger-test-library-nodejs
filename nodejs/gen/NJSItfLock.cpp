@@ -20,8 +20,8 @@ void NJSItfLock::lock()
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("lock").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
-    if(result.IsEmpty())
+    auto result_lock = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
+    if(result_lock.IsEmpty())
     {
         Nan::ThrowError("NJSItfLock::lock call failed");
     }
@@ -39,14 +39,14 @@ bool NJSItfLock::tryLock()
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("tryLock").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
-    if(result.IsEmpty())
+    auto result_tryLock = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
+    if(result_tryLock.IsEmpty())
     {
         Nan::ThrowError("NJSItfLock::tryLock call failed");
     }
-    auto checkedResult = result.ToLocalChecked();
-    auto arg_1 = Nan::To<bool>(checkedResult).FromJust();
-    return arg_1;
+    auto checkedResult_tryLock = result_tryLock.ToLocalChecked();
+    auto fResult_tryLock = Nan::To<bool>(checkedResult_tryLock).FromJust();
+    return fResult_tryLock;
 }
 
 void NJSItfLock::unlock()
@@ -61,8 +61,8 @@ void NJSItfLock::unlock()
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("unlock").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
-    if(result.IsEmpty())
+    auto result_unlock = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
+    if(result_unlock.IsEmpty())
     {
         Nan::ThrowError("NJSItfLock::unlock call failed");
     }

@@ -15,13 +15,13 @@ void NJSItfHttp::get(const std::string & url, const std::experimental::optional<
     Local<Array> arg_1 = Nan::New<Array>();
     for(size_t i = 0; i < (*header).size(); i++)
     {
-        auto arg_2 = Nan::New<Object>();
-        auto arg_3 = Nan::New<String>((*header)[i].field).ToLocalChecked();
-        Nan::DefineOwnProperty(arg_2, Nan::New<String>("field").ToLocalChecked(), arg_3);
-        auto arg_4 = Nan::New<String>((*header)[i].value).ToLocalChecked();
-        Nan::DefineOwnProperty(arg_2, Nan::New<String>("value").ToLocalChecked(), arg_4);
+        auto arg_1_1 = Nan::New<Object>();
+        auto arg_1_1_1 = Nan::New<String>((*header)[i].field).ToLocalChecked();
+        Nan::DefineOwnProperty(arg_1_1, Nan::New<String>("field").ToLocalChecked(), arg_1_1_1);
+        auto arg_1_1_2 = Nan::New<String>((*header)[i].value).ToLocalChecked();
+        Nan::DefineOwnProperty(arg_1_1, Nan::New<String>("value").ToLocalChecked(), arg_1_1_2);
 
-        arg_1->Set((int)i,arg_2);
+        arg_1->Set((int)i,arg_1_1);
     }
 
     auto arg_2 = NJSItfHttpCallback::wrap(callback);
@@ -35,8 +35,8 @@ void NJSItfHttp::get(const std::string & url, const std::experimental::optional<
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("get").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,3,args);
-    if(result.IsEmpty())
+    auto result_get = Nan::CallAsFunction(calling_funtion->ToObject(),handle,3,args);
+    if(result_get.IsEmpty())
     {
         Nan::ThrowError("NJSItfHttp::get call failed");
     }

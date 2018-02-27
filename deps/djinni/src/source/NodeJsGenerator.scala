@@ -263,18 +263,17 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
               val quotedMethod = s""""$methodName""""
               w.wl(s"auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>($quotedMethod).ToLocalChecked()).ToLocalChecked();")
               w.wl("auto handle = this->handle();")
-              w.wl(s"auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,$countArgs,args);")
-              //w.wl(s"auto result = local_njs_impl->CallAsFunction(context, context->Global(),$countArgs,args);")
-              w.wl("if(result.IsEmpty())").braced {
+              w.wl(s"auto result_$methodName = Nan::CallAsFunction(calling_funtion->ToObject(),handle,$countArgs,args);")
+              w.wl(s"if(result_$methodName.IsEmpty())").braced {
                 val error = s""""$baseClassName::$methodName call failed""""
                 w.wl(s"Nan::ThrowError($error);")
               }
 
 
               if(m.ret.isDefined && ret != "void"){
-                w.wl("auto checkedResult = result.ToLocalChecked();")
-                marshal.toCppArgument(m.ret.get.resolved, countArgs + 1, "checkedResult", w)
-                w.wl(s"return arg_${countArgs + 1};")
+                w.wl(s"auto checkedResult_$methodName = result_$methodName.ToLocalChecked();")
+                marshal.toCppArgument(m.ret.get.resolved, s"fResult_$methodName", s"checkedResult_$methodName", w)
+                w.wl(s"return fResult_$methodName;")
               }
 
             }
@@ -445,9 +444,9 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
       //TODO: If it is an object implemented in NodeJS (not native nor v8 type), we'll have to cast it properly and wrap it
       // If v8 type use MaybeLocal and ToLocal, if native type use Maybe and ToJust
       if(i.ext.cpp){
-        marshal.toCppArgument(p.ty.resolved, index, s"info[$index]", wr)
+        marshal.toCppArgument(p.ty.resolved, s"arg_$index", s"info[$index]", wr)
       }else{
-        marshal.fromCppArgument(p.ty.resolved, index, idNode.local(p.ident), wr)
+        marshal.fromCppArgument(p.ty.resolved, s"arg_$index", idNode.local(p.ident), wr)
       }
       count = count + 1
     })

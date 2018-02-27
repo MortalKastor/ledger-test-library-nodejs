@@ -10,20 +10,20 @@ using namespace std;
 NAN_METHOD(NJSItfTransactionListVmHandle::start) {
 
     //Check if method called with right number of arguments
-    if(info.Length() != 3)
+    if(info.Length() != 4)
     {
-        return Nan::ThrowError("NJSItfTransactionListVmHandle::start needs 3 arguments");
+        return Nan::ThrowError("NJSItfTransactionListVmHandle::start needs 4 arguments");
     }
 
     Isolate *isolate = info.GetIsolate();
     Local<Context> context = isolate->GetCurrentContext();
 
     //Check if parameters have correct types
-    Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
+    Local<Object> njs_arg_arg_0 = info[0]->ToObject(context).ToLocalChecked();
 
-    NJSItfTransactionListVmObserver *njs_obj_0 = static_cast<NJSItfTransactionListVmObserver *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
+    NJSItfTransactionListVmObserver *njs_obj_arg_0 = static_cast<NJSItfTransactionListVmObserver *>(Nan::GetInternalFieldPointer(njs_arg_arg_0,0));
 
-    std::shared_ptr<NJSItfTransactionListVmObserver> arg_0(njs_obj_0);
+    std::shared_ptr<NJSItfTransactionListVmObserver> arg_0(njs_obj_arg_0);
 
     vector<std::string> arg_1;
     Local<Array> container = Local<Array>::Cast(info[1]);
@@ -31,13 +31,23 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
     {
         if(container->Get(i)->IsString())
         {
-            String::Utf8Value string_2(container->Get(i)->ToString()->ToString());
-            auto arg_2 = std::string(*string_2);
-            arg_1.emplace_back(arg_2);
+            String::Utf8Value string_arg_1_1(container->Get(i)->ToString()->ToString());
+            auto arg_1_1 = std::string(*string_arg_1_1);
+            arg_1.emplace_back(arg_1_1);
         }
     }
 
-    auto arg_2 = Nan::To<bool>(info[2]).FromJust();
+
+    auto field_arg_2_1 = Nan::Get(info[2]->ToObject(), Nan::New<String>("coin_type").ToLocalChecked()).ToLocalChecked();
+    auto arg_2_1 = Nan::To<int32_t>(field_arg_2_1).FromJust();
+    ApiOptions arg_2(arg_2_1);
+
+    Local<Object> njs_arg_arg_3 = info[3]->ToObject(context).ToLocalChecked();
+
+    NJSItfHandleResponse *njs_obj_arg_3 = static_cast<NJSItfHandleResponse *>(Nan::GetInternalFieldPointer(njs_arg_arg_3,0));
+
+    std::shared_ptr<NJSItfHandleResponse> arg_3(njs_obj_arg_3);
+
 
     //Unwrap current object and retrieve its Cpp Implementation
     NJSItfTransactionListVmHandle* obj = Nan::ObjectWrap::Unwrap<NJSItfTransactionListVmHandle>(info.This());
@@ -47,7 +57,7 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
         return Nan::ThrowError("NJSItfTransactionListVmHandle::start : implementation of TransactionListVmHandle is not valid");
     }
 
-    cpp_impl->start(arg_0, arg_1, arg_2);
+    cpp_impl->start(arg_0, arg_1, arg_2, arg_3);
 }
 
 NAN_METHOD(NJSItfTransactionListVmHandle::stop) {

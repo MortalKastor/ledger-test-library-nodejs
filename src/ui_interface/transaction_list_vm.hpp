@@ -13,6 +13,7 @@
 #include "../interface/transaction_list_vm_observer.hpp"
 #include "../interface/execution_context.hpp"
 #include "../interface/thread_dispatcher.hpp"
+#include "../interface/api_options.hpp"
 
 #include "../http.hpp"
 
@@ -57,7 +58,10 @@ namespace ledgerapp {
         };
 
         virtual void start(const shared_ptr<ledgerapp_gen::TransactionListVmObserver>& observer,
-                           const vector<string> &addresses, bool testnetMode) override;
+                           const vector<string> &addresses,
+                           const ledgerapp_gen::ApiOptions & options,
+                            const std::shared_ptr<ledgerapp_gen::HandleResponse> & response) override;
+
         virtual void stop() override;
 
         shared_ptr<ledgerapp_gen::TransactionListVmObserver> getObserver(){ return m_observer;};

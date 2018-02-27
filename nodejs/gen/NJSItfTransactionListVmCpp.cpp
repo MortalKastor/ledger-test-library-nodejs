@@ -57,12 +57,12 @@ NAN_METHOD(NJSItfTransactionListVm::getTransaction) {
 
     //Wrap result in node object
     auto arg_1 = Nan::New<Object>();
-    auto arg_2 = Nan::New<String>((*result).tx_hash).ToLocalChecked();
-    Nan::DefineOwnProperty(arg_1, Nan::New<String>("tx_hash").ToLocalChecked(), arg_2);
-    auto arg_3 = Nan::New<String>((*result).received_at).ToLocalChecked();
-    Nan::DefineOwnProperty(arg_1, Nan::New<String>("received_at").ToLocalChecked(), arg_3);
-    auto arg_4 = Nan::New<String>((*result).tx_data).ToLocalChecked();
-    Nan::DefineOwnProperty(arg_1, Nan::New<String>("tx_data").ToLocalChecked(), arg_4);
+    auto arg_1_1 = Nan::New<String>((*result).tx_hash).ToLocalChecked();
+    Nan::DefineOwnProperty(arg_1, Nan::New<String>("tx_hash").ToLocalChecked(), arg_1_1);
+    auto arg_1_2 = Nan::New<String>((*result).received_at).ToLocalChecked();
+    Nan::DefineOwnProperty(arg_1, Nan::New<String>("received_at").ToLocalChecked(), arg_1_2);
+    auto arg_1_3 = Nan::New<String>((*result).tx_data).ToLocalChecked();
+    Nan::DefineOwnProperty(arg_1, Nan::New<String>("tx_data").ToLocalChecked(), arg_1_3);
 
 
     //Return result

@@ -5,10 +5,13 @@
 #define DJINNI_GENERATED_NJSITFTRANSACTIONLISTVMHANDLE_HPP
 
 
+#include "NJSItfHandleResponse.hpp"
 #include "NJSItfTransactionListVmObserver.hpp"
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "../../src/interface/api_options.hpp"
 
 #include <nan.h>
 #include <node.h>

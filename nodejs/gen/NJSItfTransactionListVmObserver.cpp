@@ -22,8 +22,8 @@ void NJSItfTransactionListVmObserver::on_update(const std::shared_ptr<Transactio
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("on_update").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
-    if(result.IsEmpty())
+    auto result_on_update = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
+    if(result_on_update.IsEmpty())
     {
         Nan::ThrowError("NJSItfTransactionListVmObserver::on_update call failed");
     }

@@ -94,7 +94,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
                 w.wl("//Wrap result in node object")
                 //TODO: create a wrap function
 
-                marshal.fromCppArgument(m.ret.get.resolved, countArgs , "result", w)
+                marshal.fromCppArgument(m.ret.get.resolved, s"arg_$countArgs" , "result", w)
                 w.wl
                 w.wl("//Return result")
                 w.wl(s"info.GetReturnValue().Set(arg_$countArgs);")

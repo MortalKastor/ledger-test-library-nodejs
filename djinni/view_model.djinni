@@ -1,3 +1,8 @@
+@import "http.djinni"
+
+api_options = record {
+    coin_type : i32;
+}
 transaction_list_vm_cell = record {
     tx_hash : string;
     received_at : string;
@@ -16,7 +21,14 @@ transaction_list_vm_observer = interface +o +j +n{
     on_update(new_data: transaction_list_vm);
 }
 
+response = record {
+    error: string;
+    result: string;
+}
+handle_response = interface +o +j +n {
+    respond(result: response);
+}
 transaction_list_vm_handle = interface +c {
-    start(observer: transaction_list_vm_observer, addresses: list<string>, testnetMode: bool);
+    start(observer: transaction_list_vm_observer, addresses: list<string>, options: api_options, response: handle_response);
     stop();
 }

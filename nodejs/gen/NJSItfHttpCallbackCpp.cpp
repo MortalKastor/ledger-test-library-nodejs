@@ -10,12 +10,14 @@ using namespace std;
 NAN_METHOD(NJSItfHttpCallback::on_network_error) {
 
     //Check if method called with right number of arguments
-    if(info.Length() != 0)
+    if(info.Length() != 1)
     {
-        return Nan::ThrowError("NJSItfHttpCallback::on_network_error needs 0 arguments");
+        return Nan::ThrowError("NJSItfHttpCallback::on_network_error needs 1 arguments");
     }
 
     //Check if parameters have correct types
+    String::Utf8Value string_arg_0(info[0]->ToString());
+    auto arg_0 = std::string(*string_arg_0);
 
     //Unwrap current object and retrieve its Cpp Implementation
     NJSItfHttpCallback* obj = Nan::ObjectWrap::Unwrap<NJSItfHttpCallback>(info.This());
@@ -25,7 +27,7 @@ NAN_METHOD(NJSItfHttpCallback::on_network_error) {
         return Nan::ThrowError("NJSItfHttpCallback::on_network_error : implementation of HttpCallback is not valid");
     }
 
-    cpp_impl->on_network_error();
+    cpp_impl->on_network_error(arg_0);
 }
 
 NAN_METHOD(NJSItfHttpCallback::on_success) {
@@ -38,8 +40,8 @@ NAN_METHOD(NJSItfHttpCallback::on_success) {
 
     //Check if parameters have correct types
     auto arg_0 = Nan::To<int32_t>(info[0]).FromJust();
-    String::Utf8Value string_1(info[1]->ToString());
-    auto arg_1 = std::string(*string_1);
+    String::Utf8Value string_arg_1(info[1]->ToString());
+    auto arg_1 = std::string(*string_arg_1);
 
     //Unwrap current object and retrieve its Cpp Implementation
     NJSItfHttpCallback* obj = Nan::ObjectWrap::Unwrap<NJSItfHttpCallback>(info.This());

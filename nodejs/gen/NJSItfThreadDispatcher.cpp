@@ -24,19 +24,19 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getSerialExecutionCont
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("getSerialExecutionContext").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
-    if(result.IsEmpty())
+    auto result_getSerialExecutionContext = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
+    if(result_getSerialExecutionContext.IsEmpty())
     {
         Nan::ThrowError("NJSItfThreadDispatcher::getSerialExecutionContext call failed");
     }
-    auto checkedResult = result.ToLocalChecked();
-    Local<Object> njs_arg_2 = checkedResult->ToObject(context).ToLocalChecked();
+    auto checkedResult_getSerialExecutionContext = result_getSerialExecutionContext.ToLocalChecked();
+    Local<Object> njs_arg_fResult_getSerialExecutionContext = checkedResult_getSerialExecutionContext->ToObject(context).ToLocalChecked();
 
-    NJSItfExecutionContext *njs_obj_2 = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_2,0));
+    NJSItfExecutionContext *njs_obj_fResult_getSerialExecutionContext = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_fResult_getSerialExecutionContext,0));
 
-    std::shared_ptr<NJSItfExecutionContext> arg_2(njs_obj_2);
+    std::shared_ptr<NJSItfExecutionContext> fResult_getSerialExecutionContext(njs_obj_fResult_getSerialExecutionContext);
 
-    return arg_2;
+    return fResult_getSerialExecutionContext;
 }
 
 std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getThreadPoolExecutionContext(const std::string & name)
@@ -55,19 +55,19 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getThreadPoolExecution
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("getThreadPoolExecutionContext").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
-    if(result.IsEmpty())
+    auto result_getThreadPoolExecutionContext = Nan::CallAsFunction(calling_funtion->ToObject(),handle,1,args);
+    if(result_getThreadPoolExecutionContext.IsEmpty())
     {
         Nan::ThrowError("NJSItfThreadDispatcher::getThreadPoolExecutionContext call failed");
     }
-    auto checkedResult = result.ToLocalChecked();
-    Local<Object> njs_arg_2 = checkedResult->ToObject(context).ToLocalChecked();
+    auto checkedResult_getThreadPoolExecutionContext = result_getThreadPoolExecutionContext.ToLocalChecked();
+    Local<Object> njs_arg_fResult_getThreadPoolExecutionContext = checkedResult_getThreadPoolExecutionContext->ToObject(context).ToLocalChecked();
 
-    NJSItfExecutionContext *njs_obj_2 = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_2,0));
+    NJSItfExecutionContext *njs_obj_fResult_getThreadPoolExecutionContext = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_fResult_getThreadPoolExecutionContext,0));
 
-    std::shared_ptr<NJSItfExecutionContext> arg_2(njs_obj_2);
+    std::shared_ptr<NJSItfExecutionContext> fResult_getThreadPoolExecutionContext(njs_obj_fResult_getThreadPoolExecutionContext);
 
-    return arg_2;
+    return fResult_getThreadPoolExecutionContext;
 }
 
 std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getMainExecutionContext()
@@ -85,19 +85,19 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getMainExecutionContex
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("getMainExecutionContext").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
-    if(result.IsEmpty())
+    auto result_getMainExecutionContext = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
+    if(result_getMainExecutionContext.IsEmpty())
     {
         Nan::ThrowError("NJSItfThreadDispatcher::getMainExecutionContext call failed");
     }
-    auto checkedResult = result.ToLocalChecked();
-    Local<Object> njs_arg_1 = checkedResult->ToObject(context).ToLocalChecked();
+    auto checkedResult_getMainExecutionContext = result_getMainExecutionContext.ToLocalChecked();
+    Local<Object> njs_arg_fResult_getMainExecutionContext = checkedResult_getMainExecutionContext->ToObject(context).ToLocalChecked();
 
-    NJSItfExecutionContext *njs_obj_1 = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_1,0));
+    NJSItfExecutionContext *njs_obj_fResult_getMainExecutionContext = static_cast<NJSItfExecutionContext *>(Nan::GetInternalFieldPointer(njs_arg_fResult_getMainExecutionContext,0));
 
-    std::shared_ptr<NJSItfExecutionContext> arg_1(njs_obj_1);
+    std::shared_ptr<NJSItfExecutionContext> fResult_getMainExecutionContext(njs_obj_fResult_getMainExecutionContext);
 
-    return arg_1;
+    return fResult_getMainExecutionContext;
 }
 
 std::shared_ptr<Lock> NJSItfThreadDispatcher::newLock()
@@ -115,19 +115,19 @@ std::shared_ptr<Lock> NJSItfThreadDispatcher::newLock()
     }
     auto calling_funtion = Nan::Get(local_njs_impl,Nan::New<String>("newLock").ToLocalChecked()).ToLocalChecked();
     auto handle = this->handle();
-    auto result = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
-    if(result.IsEmpty())
+    auto result_newLock = Nan::CallAsFunction(calling_funtion->ToObject(),handle,0,args);
+    if(result_newLock.IsEmpty())
     {
         Nan::ThrowError("NJSItfThreadDispatcher::newLock call failed");
     }
-    auto checkedResult = result.ToLocalChecked();
-    Local<Object> njs_arg_1 = checkedResult->ToObject(context).ToLocalChecked();
+    auto checkedResult_newLock = result_newLock.ToLocalChecked();
+    Local<Object> njs_arg_fResult_newLock = checkedResult_newLock->ToObject(context).ToLocalChecked();
 
-    NJSItfLock *njs_obj_1 = static_cast<NJSItfLock *>(Nan::GetInternalFieldPointer(njs_arg_1,0));
+    NJSItfLock *njs_obj_fResult_newLock = static_cast<NJSItfLock *>(Nan::GetInternalFieldPointer(njs_arg_fResult_newLock,0));
 
-    std::shared_ptr<NJSItfLock> arg_1(njs_obj_1);
+    std::shared_ptr<NJSItfLock> fResult_newLock(njs_obj_fResult_newLock);
 
-    return arg_1;
+    return fResult_newLock;
 }
 NAN_METHOD(NJSItfThreadDispatcher::addRef) {
 

@@ -1,5 +1,5 @@
-all: mac ios android
-
+#all: mac ios android
+all: mac
 clean:
 	-rm -rf build/
 	-rm -rf deps/build/

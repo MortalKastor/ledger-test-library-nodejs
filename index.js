@@ -34,8 +34,8 @@ NJSHttpImpl.get = (url, headers, callback) => {
     .then(function(response) {
       callback.on_success(response.status, JSON.stringify(response.data))
     })
-    .catch(reject => {
-      console.log('Reject in axios request: ', reject.message)
+    .catch(err => {
+      callback.on_error(err)
     })
 }
 
@@ -101,7 +101,7 @@ exports.getTransactions = function getTransactions(addresses, callback) {
   const observer = new binding.NJSItfTransactionListVmObserver(NJSTransactionListVmObserverImpl)
   const handle = api.observer_transaction_list()
   return new Promise((resolve, reject) => {
-    const transactions = handle.start(observer, addresses, { testnet: true }, (err, data) => {
+     handle.start(observer, addresses, { testnet: true }, (err, data) => {
       if (err) {
         return reject(err)
       }
