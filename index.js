@@ -54,7 +54,7 @@ const NJSThreadDispatcherImpl = {
 }
 
 NJSThreadDispatcherImpl.getSerialExecutionContext = name => {
-  const currentContext = NJSThreadDispatcherImpl.contexts[name]
+  let currentContext = NJSThreadDispatcherImpl.contexts[name]
   if (currentContext === undefined) {
     currentContext = new binding.NJSItfExecutionContext(NJSContextImpl)
     NJSThreadDispatcherImpl.contexts[name] = currentContext
@@ -77,11 +77,9 @@ NJSThreadDispatcherImpl.newLock = () => {
 const NJSTransactionListVmObserverImpl = {}
 NJSTransactionListVmObserverImpl.on_update = newData => {
   const countOfNewData = newData.count()
-  console.log('Number of found transactions : ', newData.count())
   if (newData.count() > 0) {
     for (var i = 0; i < newData.count(); i++) {
       const tx = newData.getTransaction(i)
-      console.log(tx.tx_hash)
     }
   }
 }
@@ -96,16 +94,22 @@ const makeApi = () => {
 //                                  EXPORTS
 // -----------------------------------------------------------------------------
 
-exports.getTransactions = function getTransactions(addresses, callback) {
+exports.getTransactions = function getTransactions(addresses, currency) {
   const api = makeApi()
   const observer = new binding.NJSItfTransactionListVmObserver(NJSTransactionListVmObserverImpl)
   const handle = api.observer_transaction_list()
   return new Promise((resolve, reject) => {
-     handle.start(observer, addresses, { testnet: true }, (err, data) => {
-      if (err) {
+
+    const NJSItfHandleResponseImpl = {}
+    NJSItfHandleResponseImpl.respond = response => {
+      if (response.error) {
         return reject(err)
       }
-      resolve(data)
-    })
+      console.log("getTransactions");
+      console.log(response.result);
+      resolve(response.result)
+    }
+
+     handle.start(observer, addresses, currency, new binding.NJSItfHandleResponse(NJSItfHandleResponseImpl))
   })
 }

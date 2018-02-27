@@ -11,7 +11,7 @@
 #include "gen/NJSItfTransactionListVmHandleCpp.hpp"
 #include "gen/NJSItfTransactionListVmObserver.hpp"
 #include "gen/NJSItfRunnableCpp.hpp"
-
+#include "gen/NJSItfHandleResponse.hpp"
 using namespace std;
 using namespace v8;
 using namespace node;
@@ -30,7 +30,7 @@ static void init(Local<Object> target){
     NJSItfTransactionListVmHandle::Initialize(target);
     NJSItfTransactionListVmObserver::Initialize(target);
     NJSItfRunnable::Initialize(target);
-
+    NJSItfHandleResponse::Initialize(target);
 
 }
 
