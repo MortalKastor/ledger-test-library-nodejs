@@ -4,7 +4,6 @@
 
 #include "http_callback.hpp"
 #include "runnable.hpp"
-
 namespace ledgerapp {
 
     HttpCallback::HttpCallback(function<void(HttpResponse)> cb,

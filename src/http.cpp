@@ -1,4 +1,5 @@
 #include "http.hpp"
+#include "http_callback.hpp"
 
 namespace ledgerapp {
 
@@ -19,10 +20,10 @@ void Http::get(const std::string & url,
 
 void Http::get(const std::string & url,
                 const std::experimental::optional<std::vector<ledgerapp_gen::HttpHeader>> & header,
-               function<void(ledgerapp::HttpResponse)> response)
+               function<void(HttpResponse)> response)
 {
     if(m_http){
-        m_http->get(url, header, make_shared<ledgerapp::HttpCallback>(std::move(response), m_context));
+        m_http->get(url, header, make_shared<HttpCallback>(std::move(response), m_context));
     }
 }
 

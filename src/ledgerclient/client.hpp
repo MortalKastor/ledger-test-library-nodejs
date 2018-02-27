@@ -5,7 +5,7 @@
 #include "types.hpp"
 #include "../http.hpp"
 #include "../interface/thread_dispatcher.hpp"
-
+#include "../interface/handle_response.hpp"
 using namespace std;
 
 namespace ledgerclient {
@@ -14,11 +14,13 @@ namespace ledgerclient {
     ledgerclient::Tx parse_transaction(const json11::Json& json);
 
     void get_token(const shared_ptr<ledgerapp::Http> &http,
+                   const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                    function<void(const std::string&)> callback);
 
     void get_transactions(const shared_ptr<ledgerapp::Http> &http,
                           const vector<string> &addresses,
                           const shared_ptr<ledgerapp_gen::ThreadDispatcher> &thread_dispatcher,
+                          const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                           function<void(vector<ledgerclient::Tx>)>);
 
 class Client final {
@@ -29,6 +31,7 @@ class Client final {
 
     void get_transactions(const vector<string> &addresses,
                           const shared_ptr<ledgerapp_gen::ThreadDispatcher> &thread_dispatcher,
+                          const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                           function<void(vector<ledgerclient::Tx>)>);
   private:
 

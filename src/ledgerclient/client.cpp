@@ -6,7 +6,7 @@
 #include "../runnable.hpp"
 
 #include "../interface/http_header.hpp"
-
+#include "../interface/response.hpp"
 
 using ledgerclient::Client;
 
@@ -25,6 +25,7 @@ ledgerclient::Tx ledgerclient::parse_transaction(const json11::Json& data){
 }
 
 void ledgerclient::get_token(const shared_ptr<ledgerapp::Http> &http,
+                             const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                              function<void(const std::string&)> callback){
     if(http){
 
@@ -34,17 +35,19 @@ void ledgerclient::get_token(const shared_ptr<ledgerapp::Http> &http,
 
         std::vector<ledgerapp_gen::HttpHeader> header;
 
-        http->get(url, header, [callback] (ledgerapp::HttpResponse resp) {
+        http->get(url, header, [callback,response] (ledgerapp::HttpResponse resp) {
 
             if (resp.error) {
+                ledgerapp_gen::Response res(resp.error_message,"");
+                response->respond(res);
                 return;
             }
             vector<ledgerclient::Tx> txs;
             string error;
             auto json_response = Json::parse(resp.data, error);
             if (!error.empty()) {
-                // there was an error
-                // fail somehow
+                ledgerapp_gen::Response res(error,"");
+                response->respond(res);
             } else {
                 callback(json_response["token"].string_value());
             }
@@ -55,6 +58,7 @@ void ledgerclient::get_token(const shared_ptr<ledgerapp::Http> &http,
 void ledgerclient::get_transactions(const shared_ptr<ledgerapp::Http> &http,
                                     const vector<string> &addresses,
                                     const shared_ptr<ledgerapp_gen::ThreadDispatcher> &thread_dispatcher,
+                                    const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                                     function<void(vector<ledgerclient::Tx>)> callback)
 {
 
@@ -78,24 +82,28 @@ void ledgerclient::get_transactions(const shared_ptr<ledgerapp::Http> &http,
 
     auto back_context = thread_dispatcher->getSerialExecutionContext(ledgerapp::BACK_EXECUTION_CONTEXT);
     auto local_http = http;
-    get_token(http, [&,local_http,url,callback,back_context](const std::string &token) mutable {
+    get_token(http, response, [&,local_http,url,callback,back_context](const std::string &token) mutable {
 
         std::vector<ledgerapp_gen::HttpHeader> header;
         header.emplace_back(ledgerapp_gen::HttpHeader("X-LedgerWallet-SyncToken",token));
 
         //we capture thread dispatcher because we want to run on main thread injection of txs
-        auto tx_task = [&,local_http,url,header,callback](){
+        auto tx_task = [&,local_http,url,header,callback,response](){
 
             local_http->get(url, header, [&,callback] (ledgerapp::HttpResponse resp) {
+
                 if (resp.error) {
+                    ledgerapp_gen::Response res(resp.error_message,"");
+                    response->respond(res);
                     return;
                 }
+
                 string error;
                 auto json_response = Json::parse(resp.data, error);
 
                 if (!error.empty()) {
-                    // there was an error
-                    // fail somehow
+                    ledgerapp_gen::Response res(error,"");
+                    response->respond(res);
                 }else {
                     if (json_response.is_object()) {
 
@@ -123,7 +131,8 @@ Client::Client(const shared_ptr<ledgerapp::Http> &http_client) : m_http(http_cli
 
 void Client::get_transactions(const vector<string> &addresses,
                               const shared_ptr<ledgerapp_gen::ThreadDispatcher> &thread_dispatcher,
+                              const std::shared_ptr<ledgerapp_gen::HandleResponse> & response,
                               function<void(vector<ledgerclient::Tx>)>callback)
 {
-    ledgerclient::get_transactions(m_http, addresses, thread_dispatcher, callback);
+    ledgerclient::get_transactions(m_http, addresses, thread_dispatcher, response, callback);
 }

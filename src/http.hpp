@@ -10,6 +10,7 @@
 
 namespace ledgerapp {
 
+
 class Http final : ledgerapp_gen::Http {
 
   public:

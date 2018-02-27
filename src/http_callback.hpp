@@ -14,6 +14,7 @@ namespace ledgerapp {
 
     struct HttpResponse {
         bool error;
+        string error_message;
         uint16_t http_code;
         string data;
     };

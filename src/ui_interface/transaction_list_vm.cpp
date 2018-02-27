@@ -9,6 +9,8 @@
 #include "../runnable.hpp"
 #include "../ledgerapp.hpp"
 
+#include "../interface/response.hpp"
+
 #include "transaction_list_vm.hpp"
 
 using namespace ledgerapp_gen;
@@ -29,13 +31,20 @@ namespace ledgerapp {
         //Set testnetMode
         ledgerclient::testnetMode = (options.coin_type == 1);
         
-        ledgerclient::get_transactions(m_http, addresses, m_thread_dispatcher, [self, main_context](const vector<ledgerclient::Tx> &txs) mutable {
+        ledgerclient::get_transactions(m_http, addresses, m_thread_dispatcher, response, [self, main_context, response](const vector<ledgerclient::Tx> &txs) mutable {
 
-            vector <ledgerapp_gen::TransactionListVmCell> vCells;
+            //TODO: refactor HandleResponse and Observer
+            //Test Integration for HandleResponse
+            //Here handle response and observer are having same purpose we can refactor to have one of them doing all the job
+            //for test purpose, we leave both of them here
+            vector<ledgerapp_gen::TransactionListVmCell> vCells;
+            string txs_data;
             for (auto tx : txs) {
+                txs_data.append(tx.data);
                 vCells.emplace_back(ledgerapp_gen::TransactionListVmCell(tx.hash, tx.received_at, tx.data));
             }
-
+            ledgerapp_gen::Response res("", txs_data);
+            response->respond(res);
             //In new context
             const weak_ptr <TransactionListVmHandle> weak_self = self;
         

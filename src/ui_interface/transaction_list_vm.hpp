@@ -14,6 +14,7 @@
 #include "../interface/execution_context.hpp"
 #include "../interface/thread_dispatcher.hpp"
 #include "../interface/api_options.hpp"
+#include "../interface/handle_response.hpp"
 
 #include "../http.hpp"
 
