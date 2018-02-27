@@ -7,6 +7,7 @@ import djinni.writer.IndentWriter
 
 import scala.collection.mutable.ListBuffer
 
+//noinspection RedundantBlock,RedundantBlock
 class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
 
   protected val cppMarshal = new CppMarshal(spec)
@@ -94,14 +95,13 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       }
 
     }
-    val cppType = cppMarshal.paramType(tm, true)
+    val cppType = cppMarshal.paramType(tm, needRef = true)
 
     def base(m: Meta): IndentWriter = m match {
       case p: MPrimitive => wr.wl(s"auto $converted = Nan::To<${toSupportedCppNativeTypes(p.cName)}>($converting).FromJust();")
-      case MString =>{
+      case MString =>
         wr.wl(s"String::Utf8Value string_$converted($converting->ToString());")
         wr.wl(s"auto $converted = std::string(*string_$converted);")
-      }
       case MDate => wr.wl(s"auto $converted = Nan::To<$cppType>($converting).FromJust();")
       //case MBinary => "std::vector<uint8_t>"
       //case MBinary => "std::vector<Number>"
@@ -113,7 +113,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       case d: MDef =>
         d.body match {
           case e : Enum => wr.wl(withNamespace(idNode.enumType(d.name), namespace, scopeSymbols))
-          case r : Record => {
+          case r : Record =>
             // Field definitions.
             var listOfRecordArgs = new ListBuffer[String]()
             var count = 1
@@ -129,12 +129,10 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
 
             wr.wl(s"${idCpp.ty(d.name)} $converted${listOfRecordArgs.toList.mkString("(", ", ", ")")};")
             wr.wl
-
-          }
-          case i : Interface => {
+          case i : Interface =>
 
             val nodeType = paramType(tm)
-            val cppType = cppMarshal.paramType(tm, true)
+            val cppType = cppMarshal.paramType(tm, needRef = true)
             wr.wl(s"Local<Object> njs_arg_$converted = $converting->ToObject(context).ToLocalChecked();")
             wr.wl
             wr.wl(s"$nodeType *njs_obj_$converted = static_cast<$nodeType *>(Nan::GetInternalFieldPointer(njs_arg_$converted,0));")
@@ -142,8 +140,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
             wr.wl
             wr.wl(s"std::shared_ptr<$nodeType> $converted(njs_obj_$converted);")
             wr.wl
-
-          }
         }
       case e: MExtern => e.defType match {
         case DInterface => wr.wl(s"std::shared_ptr<${e.cpp.typename}>")
@@ -172,7 +168,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
 
         }else{
           wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
-          wr.wl(s"for(size_t i = 0; i < ${converting}.size(); i++)").braced{
+          wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced{
             fromCppArgument(tm.args(0), s"${converted}_1", s"$converting[i]", wr , namespace, scopeSymbols)
             wr.wl(s"$converted->Set((int)i,${converted}_1);")
           }
@@ -183,27 +179,22 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       }
 
     }
-    val cppType = cppMarshal.paramType(tm, true)
 
     def base(m: Meta): IndentWriter = m match {
       case p: MPrimitive => wr.wl(s"auto $converted = Nan::New<${p.nodeJSName}>($converting);")
-      case MString =>{
-        wr.wl(s"auto $converted = Nan::New<String>($converting).ToLocalChecked();")
-      }
+      case MString => wr.wl(s"auto $converted = Nan::New<String>($converting).ToLocalChecked();")
       case MDate => wr.wl(s"auto $converted = Nan::New<Date>($converting).ToLocalChecked();")
       //case MBinary => "std::vector<uint8_t>"
       //case MBinary => "std::vector<Number>"
       case MBinary => wr.wl(s"auto $converted = Nan::New<Object>($converting).ToLocalChecked();")
-      case MOptional => {
-        fromCppArgument(tm.args(0), converted, s"(*$converting)", wr, namespace, scopeSymbols)
-      }
+      case MOptional => fromCppArgument(tm.args(0), converted, s"(*$converting)", wr, namespace, scopeSymbols)
       case MList => fromCppContainer("Array")
       case MSet => fromCppContainer("Set")
       case MMap => fromCppContainer("Map")
       case d: MDef =>
         d.body match {
           case e: Enum => wr.wl(s"auto $converted = Nan::To<Object>($converting).ToLocalChecked();")
-          case r: Record => {
+          case r: Record =>
             // Field definitions.
             wr.wl(s"auto $converted = Nan::New<Object>();")
             var count = 1
@@ -215,14 +206,12 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
               count = count + 1
             }
             wr.wl
-          }
-          case i: Interface => {
+          case i: Interface =>
             val nodeType = paramType(tm)
-            val cppType = cppMarshal.paramType(tm, true)
+            val cppType = cppMarshal.paramType(tm, needRef = true)
             //Use wrap methods
             wr.wl(s"auto $converted = ${idNode.ty(d.name)}::wrap($converting);")
             wr.wl
-          }
         }
       case e: MExtern => e.defType match {
         case DInterface =>  wr.wl(s"auto $converted = ${idNode.ty(e.name)}::wrap($converting);")
@@ -277,7 +266,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
             cppInterfaceImport = s"${cppInterfaceImport}Cpp"
           }
 
-          cppInterfaceImport = s"""${cppInterfaceImport}.${spec.cppHeaderExt}""""
+          cppInterfaceImport = s"""$cppInterfaceImport.${spec.cppHeaderExt}""""
           val nodeInterfaceImport = s""""${spec.nodeIncludeCpp}/${d.name}.${spec.cppHeaderExt}""""
 
           if(nodeMode){
@@ -308,7 +297,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       List()
     } else {
       m match {
-        case d: MDef => {
+        case d: MDef =>
           val nodeRecordImport = s"${spec.nodeIncludeCpp}/${d.name}"
           d.body match {
             case r: Record =>
@@ -325,7 +314,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
               }
             case _ => List()
           }
-        }
         case _ => List()
       }
     }
@@ -367,9 +355,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
         d.defType match {
           case DEnum => withNamespace(idNode.enumType(d.name), namespace, scopeSymbols)
           case DRecord => withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
-          case DInterface => {
-            withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
-          }
+          case DInterface => withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
         }
       case e: MExtern => e.defType match {
         case DInterface => s"std::shared_ptr<${e.cpp.typename}>"
@@ -379,7 +365,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
     }
     def expr(tm: MExpr): String = {
       spec.cppNnType match {
-        case Some(nnType) => {
+        case Some(nnType) =>
           // if we're using non-nullable pointers for interfaces, then special-case
           // both optional and non-optional interface types
           val args = if (tm.args.isEmpty) "" else tm.args.map(expr).mkString("<", ", ", ">")
@@ -400,13 +386,11 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
               }
             case _ => base(tm.base) + args
           }
-        }
         case None =>
           if (isOptionalInterface(tm)) {
             // otherwise, interfaces are always plain old shared_ptr
             expr(tm.args.head)
           } else {
-            val args = if (tm.args.isEmpty) "" else tm.args.map(expr).mkString("<", ", ", ">")
             base(tm.base)
           }
       }

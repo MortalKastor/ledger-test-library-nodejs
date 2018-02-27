@@ -19,7 +19,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
     val cppClassName = cppMarshal.typename(ident, i)
 
     if(i.ext.cpp){
-      val factory = "static_create_instance_method"
+
       val fileName = idNode.ty(ident.name) + "Cpp.cpp"
       createFile(spec.nodeOutFolder.get, fileName, {(w: writer.IndentWriter) =>
 
@@ -68,7 +68,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
 
               var args : String = ""
               for (i <- 0 to countArgs - 1) {
-                args = args.concat(s"arg_${i}")
+                args = args.concat(s"arg_$i")
                 if(i < m.params.length - 1){
                   args = args.concat(", ")
                 }
@@ -108,7 +108,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
             factoryFound = m.ret.exists
             { x =>
               val returnTypeName = cppMarshal.paramType(x.resolved, true)
-              (returnTypeName.contains(cppClassName))
+              returnTypeName.contains(cppClassName)
             }
             if(factoryFound){
               factory = Some(m)

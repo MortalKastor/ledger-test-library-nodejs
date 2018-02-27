@@ -16,9 +16,9 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
 
   //TODO: add include of records (structs) !!!!!!!!
   class CppRefs(name: String) {
-    var hpp = mutable.TreeSet[String]()
-    var hppFwds = mutable.TreeSet[String]()
-    var cpp = mutable.TreeSet[String]()
+    val hpp = mutable.TreeSet[String]()
+    val hppFwds = mutable.TreeSet[String]()
+    val cpp = mutable.TreeSet[String]()
 
     def find(ty: TypeRef, forwardDeclareOnly: Boolean, nodeMode: Boolean) { find(ty.resolved, forwardDeclareOnly, nodeMode) }
     def find(tm: MExpr, forwardDeclareOnly: Boolean, nodeMode: Boolean) {
@@ -92,7 +92,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
         w.wl
         w.wl("#include <nan.h>")
         w.wl("#include <node.h>")
-        w.wl(s"#include ${cppInterfaceHpp}")
+        w.wl(s"#include $cppInterfaceHpp")
 
         w.wl
 
@@ -151,7 +151,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
               val params = m.params.map(p => cppMarshal.paramType(p.ty.resolved) + " " + idNode.local(p.ident))
               if(!m.static) {
                 val constFlag = if (m.const) " const" else ""
-                w.wl(s"$ret ${methodName}${params.mkString("(", ", ", ")")}$constFlag;")
+                w.wl(s"$ret $methodName${params.mkString("(", ", ", ")")}$constFlag;")
               }
             }
 
@@ -163,11 +163,9 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
           w.wlOutdent("private:")
           for (m <- i.methods) {
             writeDoc(w, m.doc)
-            val ret = marshal.returnType(m.ret)
             val methodName = m.ident.name
             if (!m.static && !nodeMode) {
-              val constFlag = if (m.const) " const" else ""
-              w.wl(s"static NAN_METHOD(${methodName});")
+              w.wl(s"static NAN_METHOD($methodName);")
             }
             w.wl
           }
@@ -205,11 +203,9 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
 
     //Generate implementation file
     val baseClassName = marshal.typename(ident, i)
-    val cppClassName = cppMarshal.typename(ident, i)
 
     if(i.ext.nodeJS){
 
-      val factory = "static_create_instance_method"
       val fileName = idNode.ty(ident.name) + ".cpp"
       createFile(spec.nodeOutFolder.get, fileName, {(w: writer.IndentWriter) =>
 
@@ -235,7 +231,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
           val params = m.params.map(p => cppMarshal.paramType(p.ty.resolved) + " " + idNode.local(p.ident))
           if(!m.static) {
             val constFlag = if (m.const) " const" else ""
-            w.wl(s"$ret $baseClassName::${methodName}${params.mkString("(", ", ", ")")}$constFlag").braced{
+            w.wl(s"$ret $baseClassName::$methodName${params.mkString("(", ", ", ")")}$constFlag").braced{
 
               addContext(m, w, isNodeMode)
 
@@ -243,7 +239,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
               val countArgs = checkAndCastTypes(ident, i, m, w)
               var args : String = s"Handle<Value> args[$countArgs] = {"
               for (i <- 0 to countArgs - 1) {
-                args = args.concat(s"arg_${i}")
+                args = args.concat(s"arg_$i")
                 if(i < m.params.length - 1){
                   args = args.concat(", ")
                 }
@@ -318,7 +314,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
         wr.wl("Isolate *isolate = info.GetIsolate();")
         wr.wl("Local<Context> context = isolate->GetCurrentContext();")
 
-        var factoryName = factory.get.ident.name
+        val factoryName = factory.get.ident.name
         val factoryArgsLength = factory.get.params.length
         wr.wl
         wr.wl(s"//Check if $baseClassName::New called with right number of arguments")
@@ -333,7 +329,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
         val countFactoryArgs = checkAndCastTypes(ident, i, factory.get, wr)
         var factoryArgs : String = ""
         for (i <- 0 to countFactoryArgs - 1) {
-          factoryArgs = factoryArgs.concat(s"arg_${i}")
+          factoryArgs = factoryArgs.concat(s"arg_$i")
           if(i < factory.get.params.length - 1){
             factoryArgs = factoryArgs.concat(", ")
           }
@@ -372,7 +368,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
   protected def createRefMethods(ident: Ident, i: Interface, wr: writer.IndentWriter): Unit ={
 
     val baseClassName = marshal.typename(ident, i)
-    val cppClassName = cppMarshal.typename(ident, i)
     wr.w(s"NAN_METHOD($baseClassName::addRef)").braced {
       wr.wl
       wr.wl(s"$baseClassName *obj = Nan::ObjectWrap::Unwrap<$baseClassName>(info.This());")
@@ -432,12 +427,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
 
   protected def checkAndCastTypes(ident: Ident, i: Interface, method: Interface.Method, wr: writer.IndentWriter): Int ={
 
-    val baseClassName = marshal.typename(ident, i)
-    val cppClassName = cppMarshal.typename(ident, i)
-
-    val methodName = method.ident.name
-
-    var args : String = ""
     var count = 0
     method.params.map(p =>{
       val index = method.params.indexOf(p)
