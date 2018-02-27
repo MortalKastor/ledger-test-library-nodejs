@@ -1,0 +1,8 @@
+@import "async.djinni"
+
+thread_dispatcher = interface +j +o +n{
+    getSerialExecutionContext(name: string): execution_context;
+    getThreadPoolExecutionContext(name: string): execution_context;
+    getMainExecutionContext(): execution_context;
+    newLock(): lock;
+}

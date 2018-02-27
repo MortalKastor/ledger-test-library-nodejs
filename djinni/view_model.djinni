@@ -1,0 +1,22 @@
+transaction_list_vm_cell = record {
+    tx_hash : string;
+    received_at : string;
+    tx_data : string;
+}
+
+transaction_list_vm = interface +c {
+    #get transactions
+    # the total number of results in this list
+    count(): i32;
+    # get the data for an individual user
+    getTransaction(index: i32): optional<transaction_list_vm_cell>;
+}
+
+transaction_list_vm_observer = interface +o +j +n{
+    on_update(new_data: transaction_list_vm);
+}
+
+transaction_list_vm_handle = interface +c {
+    start(observer: transaction_list_vm_observer, addresses: list<string>, testnetMode: bool);
+    stop();
+}

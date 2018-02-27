@@ -1,0 +1,53 @@
+# build dirs
+build/
+build_ios/
+build_mac/
+build_win/
+
+#gradle
+.gradle
+
+# gyp + android
+GypAndroid.mk
+*.target.mk
+obj/
+
+# misc
+.DS_Store
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+xcshareddata
+
+# AppCode
+.idea/
+
+
+# djinni
+objc/gen/
+djinni-output-temp/
+
+# android
+libs/
+obj/
+
+#node modules
+node_modules/
+
+#Clion
+cmake-build-debug/
+

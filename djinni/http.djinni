@@ -1,0 +1,13 @@
+http_header = record {
+    field : string;
+    value : string;
+}
+
+http_callback = interface +c {
+    on_network_error();
+    on_success(http_code: i16, data: string);
+}
+
+http = interface +o +j +n{
+    get(url: string, header : optional<list<http_header>>, callback: http_callback);
+}

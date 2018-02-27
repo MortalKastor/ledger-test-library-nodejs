@@ -1,0 +1,14 @@
+runnable = interface +c {
+	run();
+}
+
+lock = interface +j +o +n{
+	lock();
+	tryLock(): bool;
+	unlock();
+}
+
+execution_context = interface +j +o +n{
+	execute(runnable: runnable);
+	delay(runnable: runnable, millis: i64);
+}

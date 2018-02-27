@@ -1,0 +1,10 @@
+@import "http.djinni"
+@import "thread.djinni"
+@import "view_model.djinni"
+@import "async.djinni"
+
+api = interface +c {
+    static create_api(http_impl: http,thread_dispatcher: thread_dispatcher): api;
+    observer_transaction_list(): transaction_list_vm_handle;
+    get_transactions(address: string): list<string>;
+}

@@ -1,0 +1,9 @@
+cpp_interface = interface +c {
+    #static createInstance(version: string): cpp_interface;
+    getCppVersion(version: string): i32;
+}
+node_interface = interface +n {
+    getNodeVersion(version: string): i32;
+}
+
+
