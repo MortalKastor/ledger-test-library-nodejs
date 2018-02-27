@@ -13,8 +13,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
   protected val cppMarshal = new CppMarshal(spec)
 
   override def typename(tm: MExpr): String = toNodeType(tm, None, Seq())
-  def typename(tm: MExpr, scopeSymbols: Seq[String]): String = toNodeType(tm, None, scopeSymbols)
-  def typename(ty: TypeRef, scopeSymbols: Seq[String]): String = typename(ty.resolved, scopeSymbols)
   def typename(name: String, ty: TypeDef): String = ty match {
     case e: Enum => idNode.enumType(name)
     case i: Interface => idNode.ty(name)
@@ -22,11 +20,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
   }
 
   override def fqTypename(tm: MExpr): String = toNodeType(tm, Some(spec.cppNamespace), Seq())
-  def fqTypename(name: String, ty: TypeDef): String = ty match {
-    case e: Enum => withNs(Some(spec.cppNamespace), idNode.enumType(name))
-    case i: Interface => withNs(Some(spec.cppNamespace), idNode.ty(name))
-    case r: Record => withNs(Some(spec.cppNamespace), idNode.ty(name))
-  }
 
   override def paramType(tm: MExpr): String = toNodeParamType(tm)
   override def fqParamType(tm: MExpr): String = toNodeParamType(tm, Some(spec.cppNamespace))
@@ -39,8 +32,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
     ret.fold("void")(toNodeType(_, Some(spec.cppNamespace)))
   }
 
-  def fieldType(tm: MExpr, scopeSymbols: Seq[String]): String = typename(tm, scopeSymbols)
-  def fieldType(ty: TypeRef, scopeSymbols: Seq[String]): String = fieldType(ty.resolved, scopeSymbols)
   override def fieldType(tm: MExpr): String = typename(tm)
   override def fqFieldType(tm: MExpr): String = fqTypename(tm)
 
@@ -222,9 +213,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
     base(tm.base)
   }
 
-  override def toCpp(tm: MExpr, expr: String): String = throw new AssertionError("cpp to cpp conversion")
-  override def fromCpp(tm: MExpr, expr: String): String = throw new AssertionError("cpp to cpp conversion")
-
   def hppReferences(m: Meta, exclude: String, forwardDeclareOnly: Boolean, nodeMode: Boolean): Seq[SymbolReference] = m match {
     case p: MPrimitive => p.idlName match {
       case "i8" | "i16" | "i32" | "i64" => List(ImportRef("<cstdint>"))
@@ -396,27 +384,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       }
     }
     expr(tm)
-  }
-
-  def byValue(tm: MExpr): Boolean = tm.base match {
-    case p: MPrimitive => true
-    case d: MDef => d.defType match {
-      case DEnum => true
-      case _  => false
-    }
-    case e: MExtern => e.defType match {
-      case DInterface => false
-      case DEnum => true
-      case DRecord => e.cpp.byValue
-    }
-    case MOptional => byValue(tm.args.head)
-    case _ => false
-  }
-
-  def byValue(td: TypeDecl): Boolean = td.body match {
-    case i: Interface => false
-    case r: Record => false
-    case e: Enum => true
   }
 
   private def toNodeParamType(tm: MExpr, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String = {
