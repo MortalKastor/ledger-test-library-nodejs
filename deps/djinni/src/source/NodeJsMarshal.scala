@@ -1,6 +1,6 @@
 package djinni
 
-import  djinni.ast._
+import djinni.ast._
 import djinni.generatorTools._
 import djinni.meta._
 import djinni.writer.IndentWriter
@@ -12,46 +12,116 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
 
   protected val cppMarshal = new CppMarshal(spec)
 
-  override def typename(tm: MExpr): String = toNodeType(tm, None, Seq())
-  def typename(name: String, ty: TypeDef): String = ty match {
-    case e: Enum => idNode.enumType(name)
-    case i: Interface => idNode.ty(name)
-    case r: Record => idNode.ty(name)
-  }
-
-  override def fqTypename(tm: MExpr): String = toNodeType(tm, Some(spec.cppNamespace), Seq())
-
   override def paramType(tm: MExpr): String = toNodeParamType(tm)
+
   override def fqParamType(tm: MExpr): String = toNodeParamType(tm, Some(spec.cppNamespace))
+
+  private def toNodeParamType(tm: MExpr, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String = {
+    toNodeType(tm, namespace, scopeSymbols)
+  }
 
   def returnType(ret: Option[TypeRef], scopeSymbols: Seq[String]): String = {
     ret.fold("void")(toNodeType(_, None, scopeSymbols))
   }
+
   override def returnType(ret: Option[TypeRef]): String = ret.fold("void")(toNodeType(_, None))
+
   override def fqReturnType(ret: Option[TypeRef]): String = {
     ret.fold("void")(toNodeType(_, Some(spec.cppNamespace)))
   }
 
-  override def fieldType(tm: MExpr): String = typename(tm)
-  override def fqFieldType(tm: MExpr): String = fqTypename(tm)
+  private def toNodeType(ty: TypeRef, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String =
+    toNodeType(ty.resolved, namespace, scopeSymbols)
 
-  private def toSupportedCppNativeTypes(inputType : String): String = {
-    inputType match{
-      case "int8_t" | "int16_t" => "int32_t"
-      case "float" => "double"
-      case _ => inputType
+  private def toNodeType(tm: MExpr, namespace: Option[String], scopeSymbols: Seq[String]): String = {
+
+    def base(m: Meta): String = m match {
+      case p: MPrimitive => p.nodeJSName
+      case MString => if (spec.cppUseWideStrings) "std::wstring" else "String"
+      //case MDate => "Object"
+      case MDate => "Date"
+      //case MBinary => "std::vector<uint8_t>"
+      //case MBinary => "std::vector<Number>"
+      case MBinary => "Object"
+      case MOptional => spec.cppOptionalTemplate
+      case MList => "Array"
+      case MSet => "Set"
+      case MMap => "Map"
+      case d: MDef =>
+        d.defType match {
+          case DEnum => withNamespace(idCpp.enumType(d.name), namespace, scopeSymbols)
+          case DRecord => withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)
+          case DInterface => withNamespace(idNode.ty(d.name), namespace, scopeSymbols)
+        }
+      case e: MExtern => e.defType match {
+        case DInterface => s"std::shared_ptr<${e.cpp.typename}>"
+        case _ => e.cpp.typename
+      }
+      case p: MParam => idNode.typeParam(p.name)
     }
+
+    def expr(tm: MExpr): String = {
+      spec.cppNnType match {
+        case Some(nnType) =>
+          // if we're using non-nullable pointers for interfaces, then special-case
+          // both optional and non-optional interface types
+          val args = if (tm.args.isEmpty) "" else tm.args.map(expr).mkString("<", ", ", ">")
+          tm.base match {
+            case d: MDef =>
+              d.defType match {
+                case DInterface => s"${nnType}<${withNamespace(idNode.ty(d.name), namespace, scopeSymbols)}>"
+                case _ => base(tm.base) + args
+              }
+            case MOptional =>
+              tm.args.head.base match {
+                case d: MDef =>
+                  d.defType match {
+                    case DInterface => s"std::shared_ptr<${withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)}>"
+                    case _ => base(tm.base) + args
+                  }
+                case _ => base(tm.base) + args
+              }
+            case _ => base(tm.base) + args
+          }
+        case None =>
+          if (isOptionalInterface(tm)) {
+            // otherwise, interfaces are always plain old shared_ptr
+            expr(tm.args.head)
+          } else {
+            base(tm.base)
+          }
+      }
+    }
+
+    expr(tm)
   }
 
-  def toCppArgument(tm: MExpr, converted : String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
+  private def withNamespace(name: String, namespace: Option[String], scopeSymbols: Seq[String]): String = {
 
-    def toCppContainer(container: String): IndentWriter ={
+    val ns = namespace match {
+      case Some(ns) => Some(ns)
+      case None => if (scopeSymbols.contains(name)) Some(spec.cppNamespace) else None
+    }
+    withNs(ns, name)
+  }
 
-      if(!tm.args.isEmpty){
+  override def fieldType(tm: MExpr): String = typename(tm)
+
+  override def typename(tm: MExpr): String = toNodeType(tm, None, Seq())
+
+  override def fqFieldType(tm: MExpr): String = fqTypename(tm)
+
+  override def fqTypename(tm: MExpr): String = toNodeType(tm, Some(spec.cppNamespace), Seq())
+
+  def toCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
+
+    def toCppContainer(container: String): IndentWriter = {
+
+      if (!tm.args.isEmpty) {
         val cppTemplType = cppMarshal.paramType(tm.args(0), true)
         val nodeTemplType = paramType(tm.args(0))
 
-        if(container == "Map" && tm.args.length > 1){
+        if (container == "Map" && tm.args.length > 1) {
 
           val cppTemplValueType = cppMarshal.paramType(tm.args(1), true)
           val nodeTemplValueType = paramType(tm.args(1))
@@ -60,32 +130,33 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
           //wr.wl(s"auto objectMap = Nan::To<Object>($converting).ToLocalChecked();")
           wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
           wr.wl(s"auto prop_names = objectMap->GetPropertyNames();")
-          wr.wl(s"for(uint32_t i = 0; i < prop_names->Length(); i++)").braced{
+          wr.wl(s"for(uint32_t i = 0; i < prop_names->Length(); i++)").braced {
             wr.wl(s"auto key = prop_names->Get(i);")
-            wr.wl(s"if(key->Is$nodeTemplType() && objectMap->Get(key)->Is$nodeTemplValueType())").braced{
-              toCppArgument(tm.args(0), s"${converted}_1", s"key->To$nodeTemplType()", wr , namespace, scopeSymbols)
-              toCppArgument(tm.args(1), s"${converted}_2", s"objectMap->Get(key)->To$nodeTemplValueType()", wr , namespace, scopeSymbols)
+            wr.wl(s"if(key->Is$nodeTemplType() && objectMap->Get(key)->Is$nodeTemplValueType())").braced {
+              toCppArgument(tm.args(0), s"${converted}_1", s"key->To$nodeTemplType()", wr, namespace, scopeSymbols)
+              toCppArgument(tm.args(1), s"${converted}_2", s"objectMap->Get(key)->To$nodeTemplValueType()", wr, namespace, scopeSymbols)
               wr.wl(s"$converted.emplace(${converted}_1,${converted}_2);")
             }
           }
           wr.wl
-        }else{
+        } else {
           wr.wl(s"vector<$cppTemplType> $converted;")
           //wr.wl(s"auto container = Nan::To<$container>($converting).ToLocalChecked();")
           wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
-          wr.wl(s"for(uint32_t i = 0; i < container->Length(); i++)").braced{
-            wr.wl(s"if(container->Get(i)->Is$nodeTemplType())").braced{
-              toCppArgument(tm.args(0), s"${converted}_1", s"container->Get(i)->To$nodeTemplType()", wr , namespace, scopeSymbols)
+          wr.wl(s"for(uint32_t i = 0; i < container->Length(); i++)").braced {
+            wr.wl(s"if(container->Get(i)->Is$nodeTemplType())").braced {
+              toCppArgument(tm.args(0), s"${converted}_1", s"container->Get(i)->To$nodeTemplType()", wr, namespace, scopeSymbols)
               wr.wl(s"$converted.emplace_back(${converted}_1);")
             }
           }
           wr.wl
         }
-      }else{
+      } else {
         wr.wl("//Type name not found !")
       }
 
     }
+
     val cppType = cppMarshal.paramType(tm, needRef = true)
 
     def base(m: Meta): IndentWriter = m match {
@@ -103,8 +174,8 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       case MMap => toCppContainer("Map")
       case d: MDef =>
         d.body match {
-          case e : Enum => wr.wl(withNamespace(idNode.enumType(d.name), namespace, scopeSymbols))
-          case r : Record =>
+          case e: Enum => wr.wl(withNamespace(idNode.enumType(d.name), namespace, scopeSymbols))
+          case r: Record =>
             // Field definitions.
             var listOfRecordArgs = new ListBuffer[String]()
             var count = 1
@@ -120,7 +191,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
 
             wr.wl(s"${idCpp.ty(d.name)} $converted${listOfRecordArgs.toList.mkString("(", ", ", ")")};")
             wr.wl
-          case i : Interface =>
+          case i: Interface =>
 
             val nodeType = paramType(tm)
             val cppType = cppMarshal.paramType(tm, needRef = true)
@@ -138,34 +209,35 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       }
       case p: MParam => wr.wl(idNode.typeParam(p.name))
     }
+
     base(tm.base)
   }
 
   def fromCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
 
-    def fromCppContainer(container: String): IndentWriter ={
+    def fromCppContainer(container: String): IndentWriter = {
 
-      if(!tm.args.isEmpty){
+      if (!tm.args.isEmpty) {
 
-        if(container == "Map" && tm.args.length > 1){
+        if (container == "Map" && tm.args.length > 1) {
 
           wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
-          wr.wl(s"for(auto const& elem : $converting)").braced{
-            fromCppArgument(tm.args(0), s"${converted}_1", "elem.first", wr , namespace, scopeSymbols)
-            fromCppArgument(tm.args(1), s"${converted}_2", "elem.second", wr , namespace, scopeSymbols)
+          wr.wl(s"for(auto const& elem : $converting)").braced {
+            fromCppArgument(tm.args(0), s"${converted}_1", "elem.first", wr, namespace, scopeSymbols)
+            fromCppArgument(tm.args(1), s"${converted}_2", "elem.second", wr, namespace, scopeSymbols)
             wr.wl(s"$converted->Set(context, ${converted}_1, ${converted}_2});")
           }
           wr.wl
 
-        }else{
+        } else {
           wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
-          wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced{
-            fromCppArgument(tm.args(0), s"${converted}_1", s"$converting[i]", wr , namespace, scopeSymbols)
+          wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced {
+            fromCppArgument(tm.args(0), s"${converted}_1", s"$converting[i]", wr, namespace, scopeSymbols)
             wr.wl(s"$converted->Set((int)i,${converted}_1);")
           }
           wr.wl
         }
-      }else{
+      } else {
         wr.wl("//Type name not found !")
       }
 
@@ -205,11 +277,12 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
             wr.wl
         }
       case e: MExtern => e.defType match {
-        case DInterface =>  wr.wl(s"auto $converted = ${idNode.ty(e.name)}::wrap($converting);")
+        case DInterface => wr.wl(s"auto $converted = ${idNode.ty(e.name)}::wrap($converting);")
         case _ => wr.wl(e.cpp.typename)
       }
       case p: MParam => wr.wl(s"auto $converted = Nan::To<Object>($converting).ToLocalChecked();") //wr.wl(idNode.typeParam(p.name))
     }
+
     base(tm.base)
   }
 
@@ -250,16 +323,16 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
         val base = if (d.name != exclude) {
 
           var cppInterfaceImport = s""""${idNode.ty(d.name)}"""
-          if(i.ext.cpp){
+          if (i.ext.cpp) {
             cppInterfaceImport = s"${cppInterfaceImport}Cpp"
           }
 
           cppInterfaceImport = s"""$cppInterfaceImport.${spec.cppHeaderExt}""""
           val nodeInterfaceImport = s""""${spec.nodeIncludeCpp}/${d.name}.${spec.cppHeaderExt}""""
 
-          if(nodeMode){
+          if (nodeMode) {
             List(ImportRef("<memory>"), ImportRef(cppInterfaceImport), ImportRef(nodeInterfaceImport))
-          }else{
+          } else {
             List(ImportRef("<memory>"), ImportRef(cppInterfaceImport))
           }
 
@@ -277,6 +350,17 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
       case _ => List(ImportRef(e.cpp.header))
     }
     case p: MParam => List()
+  }
+
+  def typename(name: String, ty: TypeDef): String = ty match {
+    case e: Enum => idNode.enumType(name)
+    case i: Interface => idNode.ty(name)
+    case r: Record => idNode.ty(name)
+  }
+
+  def include(ident: String, isExtendedRecord: Boolean = false): String = {
+    val prefix = if (isExtendedRecord) spec.cppExtendedRecordIncludePrefix else spec.cppIncludePrefix
+    q(prefix + spec.cppFileIdentStyle(ident) + "." + spec.cppHeaderExt)
   }
 
   def cppReferences(m: Meta, exclude: String, forwardDeclareOnly: Boolean): Seq[SymbolReference] = {
@@ -307,87 +391,12 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
     }
   }
 
-
-  def include(ident: String, isExtendedRecord: Boolean = false): String = {
-    val prefix = if (isExtendedRecord) spec.cppExtendedRecordIncludePrefix else spec.cppIncludePrefix
-    q(prefix + spec.cppFileIdentStyle (ident) + "." + spec.cppHeaderExt)
-  }
-
-  private def toNodeType(ty: TypeRef, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String =
-    toNodeType(ty.resolved, namespace, scopeSymbols)
-
-  private def withNamespace(name: String, namespace: Option[String], scopeSymbols: Seq[String]): String = {
-
-    val ns = namespace match {
-      case Some(ns) => Some(ns)
-      case None => if (scopeSymbols.contains(name)) Some(spec.cppNamespace) else None
+  private def toSupportedCppNativeTypes(inputType: String): String = {
+    inputType match {
+      case "int8_t" | "int16_t" => "int32_t"
+      case "float" => "double"
+      case _ => inputType
     }
-    withNs(ns, name)
-  }
-
-  private def toNodeType(tm: MExpr, namespace: Option[String], scopeSymbols: Seq[String]): String = {
-
-    def base(m: Meta): String = m match {
-      case p: MPrimitive => p.nodeJSName
-      case MString => if (spec.cppUseWideStrings) "std::wstring" else "String"
-      //case MDate => "Object"
-      case MDate => "Date"
-      //case MBinary => "std::vector<uint8_t>"
-      //case MBinary => "std::vector<Number>"
-      case MBinary => "Object"
-      case MOptional => spec.cppOptionalTemplate
-      case MList => "Array"
-      case MSet => "Set"
-      case MMap => "Map"
-      case d: MDef =>
-        d.defType match {
-          case DEnum => withNamespace(idCpp.enumType(d.name), namespace, scopeSymbols)
-          case DRecord => withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)
-          case DInterface => withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)
-        }
-      case e: MExtern => e.defType match {
-        case DInterface => s"std::shared_ptr<${e.cpp.typename}>"
-        case _ => e.cpp.typename
-      }
-      case p: MParam => idNode.typeParam(p.name)
-    }
-    def expr(tm: MExpr): String = {
-      spec.cppNnType match {
-        case Some(nnType) =>
-          // if we're using non-nullable pointers for interfaces, then special-case
-          // both optional and non-optional interface types
-          val args = if (tm.args.isEmpty) "" else tm.args.map(expr).mkString("<", ", ", ">")
-          tm.base match {
-            case d: MDef =>
-              d.defType match {
-                case DInterface => s"${nnType}<${withNamespace(idNode.ty(d.name), namespace, scopeSymbols)}>"
-                case _ => base(tm.base) + args
-              }
-            case MOptional =>
-              tm.args.head.base match {
-                case d: MDef =>
-                  d.defType match {
-                    case DInterface => s"std::shared_ptr<${withNamespace(idCpp.ty(d.name), namespace, scopeSymbols)}>"
-                    case _ => base(tm.base) + args
-                  }
-                case _ => base(tm.base) + args
-              }
-            case _ => base(tm.base) + args
-          }
-        case None =>
-          if (isOptionalInterface(tm)) {
-            // otherwise, interfaces are always plain old shared_ptr
-            expr(tm.args.head)
-          } else {
-            base(tm.base)
-          }
-      }
-    }
-    expr(tm)
-  }
-
-  private def toNodeParamType(tm: MExpr, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String = {
-    toNodeType(tm, namespace, scopeSymbols)
   }
 }
 
