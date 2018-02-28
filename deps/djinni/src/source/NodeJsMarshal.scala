@@ -38,10 +38,7 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
     def base(m: Meta): String = m match {
       case p: MPrimitive => p.nodeJSName
       case MString => if (spec.cppUseWideStrings) "std::wstring" else "String"
-      //case MDate => "Object"
       case MDate => "Date"
-      //case MBinary => "std::vector<uint8_t>"
-      //case MBinary => "std::vector<Number>"
       case MBinary => "Object"
       case MOptional => spec.cppOptionalTemplate
       case MList => "Array"
@@ -127,7 +124,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
           val nodeTemplValueType = paramType(tm.args(1))
 
           wr.wl(s"map<$cppTemplType, $cppTemplValueType> $converted;")
-          //wr.wl(s"auto objectMap = Nan::To<Object>($converting).ToLocalChecked();")
           wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
           wr.wl(s"auto prop_names = objectMap->GetPropertyNames();")
           wr.wl(s"for(uint32_t i = 0; i < prop_names->Length(); i++)").braced {
@@ -141,7 +137,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
           wr.wl
         } else {
           wr.wl(s"vector<$cppTemplType> $converted;")
-          //wr.wl(s"auto container = Nan::To<$container>($converting).ToLocalChecked();")
           wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
           wr.wl(s"for(uint32_t i = 0; i < container->Length(); i++)").braced {
             wr.wl(s"if(container->Get(i)->Is$nodeTemplType())").braced {
@@ -165,8 +160,6 @@ class NodeJsMarshal(spec: Spec) extends Marshal(spec) {
         wr.wl(s"String::Utf8Value string_$converted($converting->ToString());")
         wr.wl(s"auto $converted = std::string(*string_$converted);")
       case MDate => wr.wl(s"auto $converted = Nan::To<$cppType>($converting).FromJust();")
-      //case MBinary => "std::vector<uint8_t>"
-      //case MBinary => "std::vector<Number>"
       case MBinary => wr.wl("Object")
       case MOptional => wr.wl(spec.cppOptionalTemplate)
       case MList => toCppContainer("Array")

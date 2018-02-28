@@ -11,7 +11,32 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
   protected val marshal = new NodeJsMarshal(spec)
   protected val cppMarshal = new CppMarshal(spec)
 
-  override def generateEnum(origin: String, ident: Ident, doc: Doc, e: Enum): Unit = {}
+  class CppRefs(name: String) {
+    val hpp = mutable.TreeSet[String]()
+    val hppFwds = mutable.TreeSet[String]()
+    val cpp = mutable.TreeSet[String]()
+
+    def find(ty: TypeRef, forwardDeclareOnly: Boolean, nodeMode: Boolean) {
+      find(ty.resolved, forwardDeclareOnly, nodeMode)
+    }
+
+    def find(tm: MExpr, forwardDeclareOnly: Boolean, nodeMode: Boolean) {
+      tm.args.foreach((x) => find(x, forwardDeclareOnly, nodeMode))
+      find(tm.base, forwardDeclareOnly, nodeMode)
+    }
+
+    def find(m: Meta, forwardDeclareOnly: Boolean, nodeMode: Boolean) = {
+      for (r <- marshal.hppReferences(m, name, forwardDeclareOnly, nodeMode)) r match {
+        case ImportRef(arg) => hpp.add("#include " + arg)
+        case DeclRef(decl, Some(spec.cppNamespace)) => hppFwds.add(decl)
+        case DeclRef(_, _) =>
+      }
+      for (r <- marshal.cppReferences(m, name, forwardDeclareOnly)) r match {
+        case ImportRef(arg) => cpp.add("#include " + arg)
+        case DeclRef(_, _) =>
+      }
+    }
+  }
 
   override def generateInterface(origin: String, ident: Ident, doc: Doc, typeParams: Seq[TypeParam], i: Interface): Unit = {
 
@@ -121,8 +146,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
       refs.hpp.add("#include <memory>")
     }
 
-    //val found = refs.hpp.find(x => x == "#include <memory>")
-
     val baseClassName = marshal.typename(ident, i)
     //TODO: method to construct this className
     val className = baseClassName
@@ -148,12 +171,13 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
         w.wl(s"#define $define")
         w.wl
 
+        //Include hpp refs
         if (refs.hpp.nonEmpty) {
           w.wl
           refs.hpp.foreach(w.wl)
         }
 
-        //if(!nodeMode && refs.cpp.nonEmpty){
+        //Include cpp refs
         if (refs.cpp.nonEmpty) {
           w.wl
           refs.cpp.foreach(w.wl)
@@ -180,7 +204,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
 
         var classInheritance = s"class $className: public Nan::ObjectWrap"
         if (nodeMode) {
-          //classInheritance = classInheritance.concat(s", public ${spec.cppNamespace}::${ident.name}")
           classInheritance = classInheritance.concat(s", public ${spec.cppNamespace}::$cppClassName")
         }
         w.w(classInheritance).bracedSemi {
@@ -193,8 +216,10 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
 
 
           if (!nodeMode) {
+
             // Destructor
             w.wl(s"virtual ~$className() {};")
+
             //Constructor
             w.wl(s"$className(const $cpp_shared_ptr &i$cppClassName):_$cppClassName(i$cppClassName){};")
 
@@ -205,8 +230,8 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
             //To get cpp implementation
             w.wl(s"$cpp_shared_ptr getCppImpl(){return _$cppClassName;};")
           } else {
+
             // Destructor
-            //For DEBUG
             w.wl(s"~$className() {njs_impl.Reset();};")
 
             //Constructor
@@ -281,7 +306,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
         wr.wl(s"return Nan::ThrowError($error);")
       }
 
-      //TODO: if no factory require an object of same type i.e. copy constructor
+      //TODO: if no factory ?
       var initInstance = "nullptr"
       if (factory.isDefined) {
 
@@ -361,8 +386,6 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
   protected def createInitializeMethod(ident: Ident, i: Interface, wr: writer.IndentWriter): Unit = {
 
     val baseClassName = marshal.typename(ident, i)
-    val cppClassName = cppMarshal.typename(ident, i)
-
 
     wr.w(s"void $baseClassName::Initialize(Local<Object> target)").braced {
       wr.wl
@@ -387,6 +410,8 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
             wr.wl(s"Nan::SetPrototypeMethod(func_template,$quotedMethodName, $methodName);")
           }
         }
+
+        val cppClassName = cppMarshal.typename(ident, i)
         wr.wl("//Set object prototype")
         wr.wl(s"${cppClassName}_prototype.Reset(objectTemplate);")
       } else {
@@ -454,35 +479,9 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
     }
   }
 
+  override def generateEnum(origin: String, ident: Ident, doc: Doc, e: Enum): Unit = {}
+
   override def generateRecord(origin: String, ident: Ident, doc: Doc, params: Seq[TypeParam], r: Record): Unit = {}
-
-  //TODO: add include of records (structs) !!!!!!!!
-  class CppRefs(name: String) {
-    val hpp = mutable.TreeSet[String]()
-    val hppFwds = mutable.TreeSet[String]()
-    val cpp = mutable.TreeSet[String]()
-
-    def find(ty: TypeRef, forwardDeclareOnly: Boolean, nodeMode: Boolean) {
-      find(ty.resolved, forwardDeclareOnly, nodeMode)
-    }
-
-    def find(tm: MExpr, forwardDeclareOnly: Boolean, nodeMode: Boolean) {
-      tm.args.foreach((x) => find(x, forwardDeclareOnly, nodeMode))
-      find(tm.base, forwardDeclareOnly, nodeMode)
-    }
-
-    def find(m: Meta, forwardDeclareOnly: Boolean, nodeMode: Boolean) = {
-      for (r <- marshal.hppReferences(m, name, forwardDeclareOnly, nodeMode)) r match {
-        case ImportRef(arg) => hpp.add("#include " + arg)
-        case DeclRef(decl, Some(spec.cppNamespace)) => hppFwds.add(decl)
-        case DeclRef(_, _) =>
-      }
-      for (r <- marshal.cppReferences(m, name, forwardDeclareOnly)) r match {
-        case ImportRef(arg) => cpp.add("#include " + arg)
-        case DeclRef(_, _) =>
-      }
-    }
-  }
 }
 
 

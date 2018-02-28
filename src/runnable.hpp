@@ -21,12 +21,12 @@ namespace ledgerapp {
     public:
 
         using Task = function<void()>;
-        Runnable(Task task)
-        {
+
+        Runnable(Task task) {
             m_task = task;
         };
 
-        void run(){
+        void run() {
             m_task();
         };
 
