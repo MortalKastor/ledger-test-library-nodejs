@@ -69,9 +69,10 @@ task djinniGen(type: CrossPlatformExec, dependsOn: djinniBuild) {
         "--ident-jni-class", "NativeFooBar",
         "--ident-jni-file", "native_foo_bar",
 
-	      "--node-out", tmp_nodejs_out,
+	    "--node-out", tmp_nodejs_out,
         "--node-type-prefix", "NJSItf",
         "--node-include-cpp", "../../src/interface",
+        "--node-package", "ledgerapp_nodejs",
         "--idl", input]
 }
 

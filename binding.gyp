@@ -3,7 +3,6 @@
       {
       'target_name': 'ledgerapp_nodejs',
       'sources': [
-      		"nodejs/ledgerapp_module.cpp",
             "<!@(python glob.py nodejs/gen *.cpp *.hpp)"
        ],
        'include_dirs': [
