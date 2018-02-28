@@ -102,6 +102,7 @@ exports.getTransactions = function getTransactions(addresses, currency) {
       if (response.error) {
         return reject(response.error)
       }
+      console.log(JSON.parse(response.result))
       resolve(response.result)
     }
 

@@ -82,7 +82,7 @@ void ledgerclient::get_transactions(const shared_ptr<ledgerapp::Http> &http,
 
     auto back_context = thread_dispatcher->getSerialExecutionContext(ledgerapp::BACK_EXECUTION_CONTEXT);
     auto local_http = http;
-    get_token(http, response, [&,local_http,url,callback,back_context](const std::string &token) mutable {
+    get_token(http, response, [&,local_http,url,callback,back_context,response](const std::string &token) mutable {
 
         std::vector<ledgerapp_gen::HttpHeader> header;
         header.emplace_back(ledgerapp_gen::HttpHeader("X-LedgerWallet-SyncToken",token));

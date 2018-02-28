@@ -38,11 +38,17 @@ namespace ledgerapp {
             //Here handle response and observer are having same purpose we can refactor to have one of them doing all the job
             //for test purpose, we leave both of them here
             vector<ledgerapp_gen::TransactionListVmCell> vCells;
-            string txs_data;
-            for (auto tx : txs) {
-                txs_data.append(tx.data);
-                vCells.emplace_back(ledgerapp_gen::TransactionListVmCell(tx.hash, tx.received_at, tx.data));
+            
+            string txs_data = "[";
+            for (size_t j = 0; j < txs.size(); j++) {
+                txs_data.append(txs[j].data);
+                if(j != txs.size() - 1){
+                    txs_data.append(",");
+                }
+                vCells.emplace_back(ledgerapp_gen::TransactionListVmCell(txs[j].hash, txs[j].received_at, txs[j].data));
             }
+            txs_data.append("]");
+            
             ledgerapp_gen::Response res("", txs_data);
             response->respond(res);
             //In new context
