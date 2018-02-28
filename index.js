@@ -1,10 +1,9 @@
 const axios = require('axios')
-const util = require('util')
 
 let binding = null
 function loadBinding() {
   if (!binding) {
-    binding = require('bindings')('ledgerapp_nodejs')
+    binding = require('bindings')('ledgerapp_nodejs') // eslint-disable-line global-require
   }
 }
 
@@ -17,15 +16,12 @@ loadBinding()
 const NJSHttpImpl = {}
 
 NJSHttpImpl.get = (url, headers, callback) => {
-  const header = {
-    method: 'get',
-    url: url,
-  }
+  const header = { method: 'get', url }
 
   if (headers.length > 0) {
     const tokenHeader = {}
-    headers.map(header => {
-      tokenHeader[header.field] = header.value
+    headers.forEach(h => {
+      tokenHeader[h.field] = header.value
     })
     header.headers = tokenHeader
   }
@@ -58,27 +54,17 @@ NJSThreadDispatcherImpl.getSerialExecutionContext = name => {
   return currentContext
 }
 
-NJSThreadDispatcherImpl.getThreadPoolExecutionContext = name => {
-  return NJSThreadDispatcherImpl.getSerialExecutionContext(name)
-}
+NJSThreadDispatcherImpl.getThreadPoolExecutionContext = name =>
+  NJSThreadDispatcherImpl.getSerialExecutionContext(name)
 
-NJSThreadDispatcherImpl.getThreadPoolExecutionContext = name => {
-  return NJSThreadDispatcherImpl.getMainExecutionContext(name)
-}
+NJSThreadDispatcherImpl.getThreadPoolExecutionContext = name =>
+  NJSThreadDispatcherImpl.getMainExecutionContext(name)
 
 NJSThreadDispatcherImpl.newLock = () => {
-  console.log('Not implemented')
+  console.log('Not implemented') // eslint-disable-line no-console
 }
 
 const NJSTransactionListVmObserverImpl = {}
-NJSTransactionListVmObserverImpl.on_update = newData => {
-  const countOfNewData = newData.count()
-  if (newData.count() > 0) {
-    for (var i = 0; i < newData.count(); i++) {
-      const tx = newData.getTransaction(i)
-    }
-  }
-}
 
 const makeApi = () => {
   const LGHttp = new binding.NJSItfHttp(NJSHttpImpl)
@@ -102,8 +88,7 @@ exports.getTransactions = function getTransactions(addresses, currency) {
       if (response.error) {
         return reject(response.error)
       }
-      console.log(JSON.parse(response.result))
-      resolve(response.result)
+      return resolve(JSON.parse(response.result))
     }
 
     handle.start(
