@@ -1,6 +1,6 @@
-const yolo = require('./index.js')
+const lib = require('./index.js')
+
 const addresses = [
-  'coucou',
   '2MyEcnJgsHMdiHQrpaaknGDnqFohJo9dsMa',
   '2NBSh5iYxD3GjDsHURW5Yo5fyjwwgakPzNW',
   '2MtaE1ujrjsp7UxdCqjagMNA6HeVvM59kQh',
@@ -42,14 +42,14 @@ const addresses = [
   '2NFAj3yaQTVKK5tXVVCHAww3Bv9BfGgD4gK',
   '2NFQ3vq37VkjGB5DHJahud8VHFWKVHLM1hU',
 ]
-// yolo.handle.start(yolo.observer, addresses, true)
-yolo
-  .getTransactions(addresses, {coin_type : 1})
+
+lib
+  .getTransactions(addresses, { coin_type: 1 })
   .then(txs => {
-    console.log("====then");
-    console.log(txs)
+    console.log('====then') // eslint-disable-line no-console
+    console.log(txs) // eslint-disable-line no-console
   })
   .catch(err => {
-    console.log("====catch");
-    console.log(err)
+    console.log('====catch') // eslint-disable-line no-console
+    console.log(err) // eslint-disable-line no-console
   })
