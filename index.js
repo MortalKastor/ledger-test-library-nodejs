@@ -20,9 +20,7 @@ NJSHttpImpl.get = (url, headers, callback) => {
 
   if (headers.length > 0) {
     const tokenHeader = {}
-    headers.forEach(h => {
-      tokenHeader[h.field] = header.value
-    })
+    headers.forEach(h => (tokenHeader[h.field] = h.value))
     header.headers = tokenHeader
   }
 
@@ -65,6 +63,8 @@ NJSThreadDispatcherImpl.newLock = () => {
 }
 
 const NJSTransactionListVmObserverImpl = {}
+
+NJSTransactionListVmObserverImpl.on_update = () => {}
 
 const makeApi = () => {
   const LGHttp = new binding.NJSItfHttp(NJSHttpImpl)

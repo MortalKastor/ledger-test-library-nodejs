@@ -1,4 +1,7 @@
 {
   "parser": "babel-eslint",
   "extends": ["airbnb-base", "prettier"],
+  "rules": {
+    "no-return-assign": 0,
+  }
 }
