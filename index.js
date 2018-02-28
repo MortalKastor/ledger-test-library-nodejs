@@ -25,18 +25,14 @@ NJSHttpImpl.get = (url, headers, callback) => {
   if (headers.length > 0) {
     const tokenHeader = {}
     headers.map(header => {
-      tokenHeader[header['field']] = header['value']
+      tokenHeader[header.field] = header.value
     })
-    header['headers'] = tokenHeader
+    header.headers = tokenHeader
   }
 
   axios(header)
-    .then(function(response) {
-      callback.on_success(response.status, JSON.stringify(response.data))
-    })
-    .catch(err => {
-      callback.on_error(err)
-    })
+    .then(response => callback.on_success(response.status, JSON.stringify(response.data)))
+    .catch(err => callback.on_network_error(err))
 }
 
 /*
@@ -98,18 +94,22 @@ exports.getTransactions = function getTransactions(addresses, currency) {
   const api = makeApi()
   const observer = new binding.NJSItfTransactionListVmObserver(NJSTransactionListVmObserverImpl)
   const handle = api.observer_transaction_list()
-  return new Promise((resolve, reject) => {
 
+  return new Promise((resolve, reject) => {
     const NJSItfHandleResponseImpl = {}
+
     NJSItfHandleResponseImpl.respond = response => {
       if (response.error) {
-        return reject(err)
+        return reject(response.error)
       }
-      console.log("getTransactions");
-      console.log(response.result);
       resolve(response.result)
     }
 
-     handle.start(observer, addresses, currency, new binding.NJSItfHandleResponse(NJSItfHandleResponseImpl))
+    handle.start(
+      observer,
+      addresses,
+      currency,
+      new binding.NJSItfHandleResponse(NJSItfHandleResponseImpl),
+    )
   })
 }
