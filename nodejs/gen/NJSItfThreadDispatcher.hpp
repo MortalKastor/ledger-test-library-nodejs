@@ -37,15 +37,10 @@ public:
     std::shared_ptr<Lock> newLock();
 
 private:
-
-
-
-
     static NAN_METHOD(New);
 
     static NAN_METHOD(addRef);
     static NAN_METHOD(removeRef);
-
     Nan::Persistent <Object> njs_impl;
 };
 #endif //DJINNI_GENERATED_NJSITFTHREADDISPATCHER_HPP

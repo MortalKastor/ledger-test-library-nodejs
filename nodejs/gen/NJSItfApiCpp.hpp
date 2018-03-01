@@ -33,7 +33,6 @@ public:
     std::shared_ptr<ledgerapp_gen::Api> getCppImpl(){return _Api;};
 
 private:
-
     static NAN_METHOD(observer_transaction_list);
 
     static NAN_METHOD(get_transactions);

@@ -28,12 +28,10 @@ public:
     void respond(const Response & result);
 
 private:
-
     static NAN_METHOD(New);
 
     static NAN_METHOD(addRef);
     static NAN_METHOD(removeRef);
-
     Nan::Persistent <Object> njs_impl;
 };
 #endif //DJINNI_GENERATED_NJSITFHANDLERESPONSE_HPP

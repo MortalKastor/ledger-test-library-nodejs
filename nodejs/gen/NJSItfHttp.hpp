@@ -35,12 +35,10 @@ public:
     void get(const std::string & url, const std::experimental::optional<std::vector<HttpHeader>> & header, const std::shared_ptr<HttpCallback> & callback);
 
 private:
-
     static NAN_METHOD(New);
 
     static NAN_METHOD(addRef);
     static NAN_METHOD(removeRef);
-
     Nan::Persistent <Object> njs_impl;
 };
 #endif //DJINNI_GENERATED_NJSITFHTTP_HPP

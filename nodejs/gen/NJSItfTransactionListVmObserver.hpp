@@ -28,12 +28,10 @@ public:
     void on_update(const std::shared_ptr<TransactionListVm> & new_data);
 
 private:
-
     static NAN_METHOD(New);
 
     static NAN_METHOD(addRef);
     static NAN_METHOD(removeRef);
-
     Nan::Persistent <Object> njs_impl;
 };
 #endif //DJINNI_GENERATED_NJSITFTRANSACTIONLISTVMOBSERVER_HPP
