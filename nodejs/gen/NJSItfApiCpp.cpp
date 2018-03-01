@@ -62,8 +62,8 @@ NAN_METHOD(NJSItfApi::get_transactions) {
     Local<Array> arg_1 = Nan::New<Array>();
     for(size_t i = 0; i < result.size(); i++)
     {
-        auto arg_1_1 = Nan::New<String>(result[i]).ToLocalChecked();
-        arg_1->Set((int)i,arg_1_1);
+        auto arg_1_elem = Nan::New<String>(result[i]).ToLocalChecked();
+        arg_1->Set((int)i,arg_1_elem);
     }
 
 
@@ -89,17 +89,17 @@ NAN_METHOD(NJSItfApi::New) {
     }
 
     //Unwrap objects to get C++ classes
-    Local<Object> njs_arg_arg_0 = info[0]->ToObject(context).ToLocalChecked();
+    Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
 
-    NJSItfHttp *njs_obj_arg_0 = static_cast<NJSItfHttp *>(Nan::GetInternalFieldPointer(njs_arg_arg_0,0));
+    NJSItfHttp *njs_ptr_arg_0 = static_cast<NJSItfHttp *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
 
-    std::shared_ptr<NJSItfHttp> arg_0(njs_obj_arg_0);
+    std::shared_ptr<NJSItfHttp> arg_0(njs_ptr_arg_0);
 
-    Local<Object> njs_arg_arg_1 = info[1]->ToObject(context).ToLocalChecked();
+    Local<Object> njs_arg_1 = info[1]->ToObject(context).ToLocalChecked();
 
-    NJSItfThreadDispatcher *njs_obj_arg_1 = static_cast<NJSItfThreadDispatcher *>(Nan::GetInternalFieldPointer(njs_arg_arg_1,0));
+    NJSItfThreadDispatcher *njs_ptr_arg_1 = static_cast<NJSItfThreadDispatcher *>(Nan::GetInternalFieldPointer(njs_arg_1,0));
 
-    std::shared_ptr<NJSItfThreadDispatcher> arg_1(njs_obj_arg_1);
+    std::shared_ptr<NJSItfThreadDispatcher> arg_1(njs_ptr_arg_1);
 
 
     //Call factory

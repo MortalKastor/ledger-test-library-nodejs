@@ -169,6 +169,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
     def toCppContainer(container: String): IndentWriter = {
 
       if (!tm.args.isEmpty) {
+
         val cppTemplType = super.paramType(tm.args(0), true)
         val nodeTemplType = paramType(tm.args(0))
 
@@ -177,24 +178,44 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           val cppTemplValueType = super.paramType(tm.args(1), true)
           val nodeTemplValueType = paramType(tm.args(1))
 
+          val containerName = s"${converted}_container"
           wr.wl(s"map<$cppTemplType, $cppTemplValueType> $converted;")
-          wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
-          wr.wl(s"auto prop_names = objectMap->GetPropertyNames();")
-          wr.wl(s"for(uint32_t i = 0; i < prop_names->Length(); i++)").braced {
-            wr.wl(s"auto key = prop_names->Get(i);")
-            wr.wl(s"if(key->Is$nodeTemplType() && objectMap->Get(key)->Is$nodeTemplValueType())").braced {
-              toCppArgument(tm.args(0), s"${converted}_1", s"key->To$nodeTemplType()", wr, namespace, scopeSymbols)
-              toCppArgument(tm.args(1), s"${converted}_2", s"objectMap->Get(key)->To$nodeTemplValueType()", wr, namespace, scopeSymbols)
-              wr.wl(s"$converted.emplace(${converted}_1,${converted}_2);")
+          wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
+
+          //Get properties' names
+          val propretyNames = s"${converted}_prop_names"
+          wr.wl(s"auto $propretyNames = $containerName->GetPropertyNames();")
+
+          //Loop over all properties and get their values
+          wr.wl(s"for(uint32_t i = 0; i < $propretyNames->Length(); i++)").braced {
+
+            wr.wl(s"auto key = $propretyNames->Get(i);")
+
+            //Check types before access
+            wr.wl(s"if(key->Is$nodeTemplType() && $containerName->Get(key)->Is$nodeTemplValueType())").braced {
+
+              //Cast to c++ types
+              toCppArgument(tm.args(0), s"${converted}_key", s"key->To$nodeTemplType()", wr, namespace, scopeSymbols)
+              toCppArgument(tm.args(1), s"${converted}_value", s"$containerName->Get(key)->To$nodeTemplValueType()", wr, namespace, scopeSymbols)
+
+              //Append to resulting container
+              wr.wl(s"$converted.emplace(${converted}_key,${converted}_value);")
             }
           }
           wr.wl
         } else {
+
+          val containerName = s"${converted}_container"
+
           wr.wl(s"vector<$cppTemplType> $converted;")
-          wr.wl(s"Local<$container> container = Local<$container>::Cast($converting);")
-          wr.wl(s"for(uint32_t i = 0; i < container->Length(); i++)").braced {
-            wr.wl(s"if(container->Get(i)->Is$nodeTemplType())").braced {
-              toCppArgument(tm.args(0), s"${converted}_1", s"container->Get(i)->To$nodeTemplType()", wr, namespace, scopeSymbols)
+          wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
+
+          wr.wl(s"for(uint32_t i = 0; i < $containerName->Length(); i++)").braced {
+
+            wr.wl(s"if($containerName->Get(i)->Is$nodeTemplType())").braced {
+              //Cast to c++ types
+              toCppArgument(tm.args(0), s"${converted}_1", s"$containerName->Get(i)->To$nodeTemplType()", wr, namespace, scopeSymbols)
+              //Append to resulting container
               wr.wl(s"$converted.emplace_back(${converted}_1);")
             }
           }
@@ -207,6 +228,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
     }
 
     val cppType = super.paramType(tm, needRef = true)
+    val nodeType = paramType(tm)
 
     def base(m: Meta): IndentWriter = m match {
       case p: MPrimitive => wr.wl(s"auto $converted = Nan::To<${toSupportedCppNativeTypes(p.cName)}>($converting).FromJust();")
@@ -235,19 +257,14 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
               listOfRecordArgs += s"${converted}_$count"
               count = count + 1
             }
-
             wr.wl(s"${idCpp.ty(d.name)} $converted${listOfRecordArgs.toList.mkString("(", ", ", ")")};")
             wr.wl
           case i: Interface =>
-
-            val nodeType = paramType(tm)
-            val cppType = super.paramType(tm, needRef = true)
-            wr.wl(s"Local<Object> njs_arg_$converted = $converting->ToObject(context).ToLocalChecked();")
+            wr.wl(s"Local<Object> njs_$converted = $converting->ToObject(context).ToLocalChecked();")
             wr.wl
-            wr.wl(s"$nodeType *njs_obj_$converted = static_cast<$nodeType *>(Nan::GetInternalFieldPointer(njs_arg_$converted,0));")
-            //If nodeType is implemented in NodeJS it inherits from ${spec.cppNamespace}::$factoCppType
+            wr.wl(s"$nodeType *njs_ptr_$converted = static_cast<$nodeType *>(Nan::GetInternalFieldPointer(njs_$converted,0));")
             wr.wl
-            wr.wl(s"std::shared_ptr<$nodeType> $converted(njs_obj_$converted);")
+            wr.wl(s"std::shared_ptr<$nodeType> $converted(njs_ptr_$converted);")
             wr.wl
         }
       case e: MExtern => e.defType match {
@@ -267,20 +284,23 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
       if (!tm.args.isEmpty) {
 
         if (container == "Map" && tm.args.length > 1) {
-
           wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
+          //Loop and cast elements of $converting
           wr.wl(s"for(auto const& elem : $converting)").braced {
-            fromCppArgument(tm.args(0), s"${converted}_1", "elem.first", wr, namespace, scopeSymbols)
-            fromCppArgument(tm.args(1), s"${converted}_2", "elem.second", wr, namespace, scopeSymbols)
-            wr.wl(s"$converted->Set(context, ${converted}_1, ${converted}_2});")
+            //Cast
+            fromCppArgument(tm.args(0), s"${converted}_first", "elem.first", wr, namespace, scopeSymbols)
+            fromCppArgument(tm.args(1), s"${converted}_second", "elem.second", wr, namespace, scopeSymbols)
+            wr.wl(s"$converted->Set(context, ${converted}_first, ${converted}_second});")
           }
           wr.wl
 
         } else {
           wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
+          //Loop and cast elements of $converting
           wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced {
-            fromCppArgument(tm.args(0), s"${converted}_1", s"$converting[i]", wr, namespace, scopeSymbols)
-            wr.wl(s"$converted->Set((int)i,${converted}_1);")
+            //Cast
+            fromCppArgument(tm.args(0), s"${converted}_elem", s"$converting[i]", wr, namespace, scopeSymbols)
+            wr.wl(s"$converted->Set((int)i,${converted}_elem);")
           }
           wr.wl
         }

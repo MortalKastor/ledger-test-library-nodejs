@@ -19,19 +19,19 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
     Local<Context> context = isolate->GetCurrentContext();
 
     //Check if parameters have correct types
-    Local<Object> njs_arg_arg_0 = info[0]->ToObject(context).ToLocalChecked();
+    Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
 
-    NJSItfTransactionListVmObserver *njs_obj_arg_0 = static_cast<NJSItfTransactionListVmObserver *>(Nan::GetInternalFieldPointer(njs_arg_arg_0,0));
+    NJSItfTransactionListVmObserver *njs_ptr_arg_0 = static_cast<NJSItfTransactionListVmObserver *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
 
-    std::shared_ptr<NJSItfTransactionListVmObserver> arg_0(njs_obj_arg_0);
+    std::shared_ptr<NJSItfTransactionListVmObserver> arg_0(njs_ptr_arg_0);
 
     vector<std::string> arg_1;
-    Local<Array> container = Local<Array>::Cast(info[1]);
-    for(uint32_t i = 0; i < container->Length(); i++)
+    Local<Array> arg_1_container = Local<Array>::Cast(info[1]);
+    for(uint32_t i = 0; i < arg_1_container->Length(); i++)
     {
-        if(container->Get(i)->IsString())
+        if(arg_1_container->Get(i)->IsString())
         {
-            String::Utf8Value string_arg_1_1(container->Get(i)->ToString()->ToString());
+            String::Utf8Value string_arg_1_1(arg_1_container->Get(i)->ToString()->ToString());
             auto arg_1_1 = std::string(*string_arg_1_1);
             arg_1.emplace_back(arg_1_1);
         }
@@ -42,11 +42,11 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
     auto arg_2_1 = Nan::To<int32_t>(field_arg_2_1).FromJust();
     ApiOptions arg_2(arg_2_1);
 
-    Local<Object> njs_arg_arg_3 = info[3]->ToObject(context).ToLocalChecked();
+    Local<Object> njs_arg_3 = info[3]->ToObject(context).ToLocalChecked();
 
-    NJSItfHandleResponse *njs_obj_arg_3 = static_cast<NJSItfHandleResponse *>(Nan::GetInternalFieldPointer(njs_arg_arg_3,0));
+    NJSItfHandleResponse *njs_ptr_arg_3 = static_cast<NJSItfHandleResponse *>(Nan::GetInternalFieldPointer(njs_arg_3,0));
 
-    std::shared_ptr<NJSItfHandleResponse> arg_3(njs_obj_arg_3);
+    std::shared_ptr<NJSItfHandleResponse> arg_3(njs_ptr_arg_3);
 
 
     //Unwrap current object and retrieve its Cpp Implementation
