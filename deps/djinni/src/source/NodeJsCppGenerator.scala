@@ -31,7 +31,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
         case r: Record =>
         case i: Interface =>
           //First include headers
-          var headerName = if(i.ext.nodeJS) idNode.ty(td.ident.name) else idNode.ty(td.ident.name) + "Cpp"
+          var headerName = if (i.ext.nodeJS) idNode.ty(td.ident.name) else idNode.ty(td.ident.name) + "Cpp"
           w.wl("#include \"" + headerName + "." + spec.cppHeaderExt + "\"")
           interfacesToInit += td
       }
@@ -41,7 +41,7 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
       w.wl
       w.wl("static void initAll(Local<Object> target)").braced {
         w.wl("Nan::HandleScope scope;")
-        for(td <- interfacesToInit){
+        for (td <- interfacesToInit) {
           val baseClassName = marshal.typename(td.ident, td.body)
           w.wl(s"$baseClassName::Initialize(target);")
         }
