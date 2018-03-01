@@ -167,8 +167,27 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
   def toCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter): IndentWriter = {
 
     //Cast of List, Set and Map
-    def toCppContainer(container: String): IndentWriter = {
+    def toCppContainer(container: String, binary: Boolean = false): IndentWriter = {
 
+      def toVector(cppTemplType: String, nodeTemplType: String): IndentWriter ={
+        val containerName = s"${converted}_container"
+        wr.wl(s"vector<$cppTemplType> $converted;")
+        wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
+        wr.wl(s"for(uint32_t i = 0; i < $containerName->Length(); i++)").braced {
+          wr.wl(s"if($containerName->Get(i)->Is$nodeTemplType())").braced {
+            //Cast to c++ types
+            if(!binary){
+              toCppArgument(tm.args(0), s"${converted}_elem", s"$containerName->Get(i)->To$nodeTemplType()", wr)
+            }else{
+              //val context = "info.GetIsolate()->GetCurrentContext()"
+              wr.wl(s"auto ${converted}_elem = Nan::To<uint32_t>($containerName->Get(i)->To$nodeTemplType()).FromJust();")
+            }
+            //Append to resulting container
+            wr.wl(s"$converted.emplace_back(${converted}_elem);")
+          }
+        }
+        wr.wl
+      }
       if (!tm.args.isEmpty) {
 
         val cppTemplType = super.paramType(tm.args(0), true)
@@ -199,21 +218,10 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           }
           wr.wl
         } else {
-          val containerName = s"${converted}_container"
-          wr.wl(s"vector<$cppTemplType> $converted;")
-          wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
-          wr.wl(s"for(uint32_t i = 0; i < $containerName->Length(); i++)").braced {
-            wr.wl(s"if($containerName->Get(i)->Is$nodeTemplType())").braced {
-              //Cast to c++ types
-              toCppArgument(tm.args(0), s"${converted}_1", s"$containerName->Get(i)->To$nodeTemplType()", wr)
-              //Append to resulting container
-              wr.wl(s"$converted.emplace_back(${converted}_1);")
-            }
-          }
-          wr.wl
+          toVector(cppTemplType, nodeTemplType)
         }
       } else {
-        wr.wl("//Type name not found !")
+        if(binary) toVector("uint8_t", "Uint32") else wr.wl("//Type name not found !")
       }
 
     }
@@ -235,7 +243,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
         wr.wl(s"String::Utf8Value string_$converted($converting->ToString());")
         wr.wl(s"auto $converted = std::string(*string_$converted);")
       case MDate => wr.wl(s"auto $converted = Nan::To<$cppType>($converting).FromJust();")
-      case MBinary => wr.wl("Object")
+      case MBinary => toCppContainer("Array", binary = true)
       case MOptional => wr.wl(spec.cppOptionalTemplate)
       case MList => toCppContainer("Array")
       case MSet => toCppContainer("Set")
@@ -279,7 +287,22 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
   def fromCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter): IndentWriter = {
 
     //Cast of List, Set and Map
-    def fromCppContainer(container: String): IndentWriter = {
+    def fromCppContainer(container: String, binary: Boolean = false): IndentWriter = {
+
+      def fromVector(): IndentWriter = {
+        wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
+        //Loop and cast elements of $converting
+        wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced {
+          //Cast
+          if(!binary){
+            fromCppArgument(tm.args(0), s"${converted}_elem", s"$converting[i]", wr)
+          }else{
+            wr.wl(s"auto ${converted}_elem = Nan::New<Uint32>($converting[i]);")
+          }
+          wr.wl(s"$converted->Set((int)i,${converted}_elem);")
+        }
+        wr.wl
+      }
 
       if (!tm.args.isEmpty) {
 
@@ -295,30 +318,24 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           wr.wl
 
         } else {
-          wr.wl(s"Local<$container> $converted = Nan::New<$container>();")
-          //Loop and cast elements of $converting
-          wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced {
-            //Cast
-            fromCppArgument(tm.args(0), s"${converted}_elem", s"$converting[i]", wr)
-            wr.wl(s"$converted->Set((int)i,${converted}_elem);")
-          }
-          wr.wl
+          fromVector()
         }
       } else {
-        wr.wl("//Type name not found !")
+        if(binary) fromVector() else wr.wl("//Type name not found !")
       }
 
     }
 
-    def simpleCheckedCast(nodeType: String): String = {
-      s"auto $converted = Nan::New<$nodeType>($converting).ToLocalChecked();"
+    def simpleCheckedCast(nodeType: String, toCheck: Boolean = true): String = {
+      val cast = s"auto $converted = Nan::New<$nodeType>($converting)"
+      if(toCheck)s"$cast.ToLocalChecked();" else s"$cast;"
     }
 
     def base(m: Meta): IndentWriter = m match {
-      case p: MPrimitive => wr.wl(s"auto $converted = Nan::New<${p.nodeJSName}>($converting);")
+      case p: MPrimitive => wr.wl(simpleCheckedCast(p.nodeJSName, false))
       case MString => wr.wl(simpleCheckedCast("String"))
       case MDate => wr.wl(simpleCheckedCast("Date"))
-      case MBinary => wr.wl(simpleCheckedCast("Object"))
+      case MBinary => fromCppContainer("Array", true)
       case MOptional => fromCppArgument(tm.args(0), converted, s"(*$converting)", wr)
       case MList => fromCppContainer("Array")
       case MSet => fromCppContainer("Set")
