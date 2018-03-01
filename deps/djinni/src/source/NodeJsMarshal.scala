@@ -166,6 +166,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
 
   def toCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
 
+    //Cast of List, Set and Map
     def toCppContainer(container: String): IndentWriter = {
 
       if (!tm.args.isEmpty) {
@@ -279,6 +280,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
 
   def fromCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
 
+    //Cast of List, Set and Map
     def fromCppContainer(container: String): IndentWriter = {
 
       if (!tm.args.isEmpty) {
@@ -310,20 +312,22 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
 
     }
 
+    def simpleCheckedCast(nodeType: String): String = {
+      s"auto $converted = Nan::New<$nodeType>($converting).ToLocalChecked();"
+    }
+
     def base(m: Meta): IndentWriter = m match {
       case p: MPrimitive => wr.wl(s"auto $converted = Nan::New<${p.nodeJSName}>($converting);")
-      case MString => wr.wl(s"auto $converted = Nan::New<String>($converting).ToLocalChecked();")
-      case MDate => wr.wl(s"auto $converted = Nan::New<Date>($converting).ToLocalChecked();")
-      //case MBinary => "std::vector<uint8_t>"
-      //case MBinary => "std::vector<Number>"
-      case MBinary => wr.wl(s"auto $converted = Nan::New<Object>($converting).ToLocalChecked();")
+      case MString => wr.wl(simpleCheckedCast("String"))
+      case MDate => wr.wl(simpleCheckedCast("Date"))
+      case MBinary => wr.wl(simpleCheckedCast("Object"))
       case MOptional => fromCppArgument(tm.args(0), converted, s"(*$converting)", wr, namespace, scopeSymbols)
       case MList => fromCppContainer("Array")
       case MSet => fromCppContainer("Set")
       case MMap => fromCppContainer("Map")
       case d: MDef =>
         d.body match {
-          case e: Enum => wr.wl(s"auto $converted = Nan::To<Object>($converting).ToLocalChecked();")
+          case e: Enum => wr.wl(simpleCheckedCast("Object"))
           case r: Record =>
             // Field definitions.
             wr.wl(s"auto $converted = Nan::New<Object>();")
@@ -347,7 +351,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
         case DInterface => wr.wl(s"auto $converted = ${idNode.ty(e.name)}::wrap($converting);")
         case _ => wr.wl(e.cpp.typename)
       }
-      case p: MParam => wr.wl(s"auto $converted = Nan::To<Object>($converting).ToLocalChecked();") //wr.wl(idNode.typeParam(p.name))
+      case p: MParam => wr.wl(simpleCheckedCast("Object"))
     }
 
     base(tm.base)
