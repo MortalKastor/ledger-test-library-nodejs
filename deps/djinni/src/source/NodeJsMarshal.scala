@@ -152,7 +152,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
     expr(tm)
   }
 
-  private def withNamespace(name: String, namespace: Option[String], scopeSymbols: Seq[String]): String = {
+  private def withNamespace(name: String, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String = {
 
     val ns = namespace match {
       case Some(ns) => Some(ns)
@@ -164,7 +164,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
   override def toCpp(tm: MExpr, expr: String): String = throw new AssertionError("cpp to cpp conversion")
   override def fromCpp(tm: MExpr, expr: String): String = throw new AssertionError("cpp to cpp conversion")
 
-  def toCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
+  def toCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter): IndentWriter = {
 
     //Cast of List, Set and Map
     def toCppContainer(container: String): IndentWriter = {
@@ -183,39 +183,29 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           wr.wl(s"map<$cppTemplType, $cppTemplValueType> $converted;")
           wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
 
-          //Get properties' names
+          //Get properties' names, loop over them and get their values
           val propretyNames = s"${converted}_prop_names"
           wr.wl(s"auto $propretyNames = $containerName->GetPropertyNames();")
-
-          //Loop over all properties and get their values
           wr.wl(s"for(uint32_t i = 0; i < $propretyNames->Length(); i++)").braced {
-
             wr.wl(s"auto key = $propretyNames->Get(i);")
-
             //Check types before access
             wr.wl(s"if(key->Is$nodeTemplType() && $containerName->Get(key)->Is$nodeTemplValueType())").braced {
-
               //Cast to c++ types
-              toCppArgument(tm.args(0), s"${converted}_key", s"key->To$nodeTemplType()", wr, namespace, scopeSymbols)
-              toCppArgument(tm.args(1), s"${converted}_value", s"$containerName->Get(key)->To$nodeTemplValueType()", wr, namespace, scopeSymbols)
-
+              toCppArgument(tm.args(0), s"${converted}_key", s"key->To$nodeTemplType()", wr)
+              toCppArgument(tm.args(1), s"${converted}_value", s"$containerName->Get(key)->To$nodeTemplValueType()", wr)
               //Append to resulting container
               wr.wl(s"$converted.emplace(${converted}_key,${converted}_value);")
             }
           }
           wr.wl
         } else {
-
           val containerName = s"${converted}_container"
-
           wr.wl(s"vector<$cppTemplType> $converted;")
           wr.wl(s"Local<$container> $containerName = Local<$container>::Cast($converting);")
-
           wr.wl(s"for(uint32_t i = 0; i < $containerName->Length(); i++)").braced {
-
             wr.wl(s"if($containerName->Get(i)->Is$nodeTemplType())").braced {
               //Cast to c++ types
-              toCppArgument(tm.args(0), s"${converted}_1", s"$containerName->Get(i)->To$nodeTemplType()", wr, namespace, scopeSymbols)
+              toCppArgument(tm.args(0), s"${converted}_1", s"$containerName->Get(i)->To$nodeTemplType()", wr)
               //Append to resulting container
               wr.wl(s"$converted.emplace_back(${converted}_1);")
             }
@@ -244,7 +234,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
       case MMap => toCppContainer("Map")
       case d: MDef =>
         d.body match {
-          case e: Enum => wr.wl(withNamespace(idNode.enumType(d.name), namespace, scopeSymbols))
+          case e: Enum => wr.wl(withNamespace(idNode.enumType(d.name)))
           case r: Record =>
             // Field definitions.
             var listOfRecordArgs = new ListBuffer[String]()
@@ -254,7 +244,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
               val fieldName = idCpp.field(f.ident)
               val quotedFieldName = s""""$fieldName""""
               wr.wl(s"auto field_${converted}_$count = Nan::Get($converting->ToObject(), Nan::New<String>($quotedFieldName).ToLocalChecked()).ToLocalChecked();")
-              toCppArgument(f.ty.resolved, s"${converted}_$count", s"field_${converted}_$count", wr, namespace, scopeSymbols)
+              toCppArgument(f.ty.resolved, s"${converted}_$count", s"field_${converted}_$count", wr)
               listOfRecordArgs += s"${converted}_$count"
               count = count + 1
             }
@@ -262,9 +252,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
             wr.wl
           case i: Interface =>
             wr.wl(s"Local<Object> njs_$converted = $converting->ToObject(context).ToLocalChecked();")
-            wr.wl
             wr.wl(s"$nodeType *njs_ptr_$converted = static_cast<$nodeType *>(Nan::GetInternalFieldPointer(njs_$converted,0));")
-            wr.wl
             wr.wl(s"std::shared_ptr<$nodeType> $converted(njs_ptr_$converted);")
             wr.wl
         }
@@ -278,7 +266,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
     base(tm.base)
   }
 
-  def fromCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): IndentWriter = {
+  def fromCppArgument(tm: MExpr, converted: String, converting: String, wr: IndentWriter): IndentWriter = {
 
     //Cast of List, Set and Map
     def fromCppContainer(container: String): IndentWriter = {
@@ -290,8 +278,8 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           //Loop and cast elements of $converting
           wr.wl(s"for(auto const& elem : $converting)").braced {
             //Cast
-            fromCppArgument(tm.args(0), s"${converted}_first", "elem.first", wr, namespace, scopeSymbols)
-            fromCppArgument(tm.args(1), s"${converted}_second", "elem.second", wr, namespace, scopeSymbols)
+            fromCppArgument(tm.args(0), s"${converted}_first", "elem.first", wr)
+            fromCppArgument(tm.args(1), s"${converted}_second", "elem.second", wr)
             wr.wl(s"$converted->Set(context, ${converted}_first, ${converted}_second});")
           }
           wr.wl
@@ -301,7 +289,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
           //Loop and cast elements of $converting
           wr.wl(s"for(size_t i = 0; i < $converting.size(); i++)").braced {
             //Cast
-            fromCppArgument(tm.args(0), s"${converted}_elem", s"$converting[i]", wr, namespace, scopeSymbols)
+            fromCppArgument(tm.args(0), s"${converted}_elem", s"$converting[i]", wr)
             wr.wl(s"$converted->Set((int)i,${converted}_elem);")
           }
           wr.wl
@@ -321,7 +309,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
       case MString => wr.wl(simpleCheckedCast("String"))
       case MDate => wr.wl(simpleCheckedCast("Date"))
       case MBinary => wr.wl(simpleCheckedCast("Object"))
-      case MOptional => fromCppArgument(tm.args(0), converted, s"(*$converting)", wr, namespace, scopeSymbols)
+      case MOptional => fromCppArgument(tm.args(0), converted, s"(*$converting)", wr)
       case MList => fromCppContainer("Array")
       case MSet => fromCppContainer("Set")
       case MMap => fromCppContainer("Map")
@@ -334,7 +322,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
             var count = 1
             for (f <- r.fields) {
               val fieldName = idCpp.field(f.ident)
-              fromCppArgument(f.ty.resolved, s"${converted}_$count", s"$converting.$fieldName", wr, namespace, scopeSymbols)
+              fromCppArgument(f.ty.resolved, s"${converted}_$count", s"$converting.$fieldName", wr)
               val quotedFieldName = s""""$fieldName""""
               wr.wl(s"Nan::DefineOwnProperty($converted, Nan::New<String>($quotedFieldName).ToLocalChecked(), ${converted}_$count);")
               count = count + 1

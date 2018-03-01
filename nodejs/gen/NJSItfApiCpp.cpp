@@ -90,15 +90,11 @@ NAN_METHOD(NJSItfApi::New) {
 
     //Unwrap objects to get C++ classes
     Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
-
     NJSItfHttp *njs_ptr_arg_0 = static_cast<NJSItfHttp *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
-
     std::shared_ptr<NJSItfHttp> arg_0(njs_ptr_arg_0);
 
     Local<Object> njs_arg_1 = info[1]->ToObject(context).ToLocalChecked();
-
     NJSItfThreadDispatcher *njs_ptr_arg_1 = static_cast<NJSItfThreadDispatcher *>(Nan::GetInternalFieldPointer(njs_arg_1,0));
-
     std::shared_ptr<NJSItfThreadDispatcher> arg_1(njs_ptr_arg_1);
 
 

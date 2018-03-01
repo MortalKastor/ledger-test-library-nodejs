@@ -20,9 +20,7 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
 
     //Check if parameters have correct types
     Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
-
     NJSItfTransactionListVmObserver *njs_ptr_arg_0 = static_cast<NJSItfTransactionListVmObserver *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
-
     std::shared_ptr<NJSItfTransactionListVmObserver> arg_0(njs_ptr_arg_0);
 
     vector<std::string> arg_1;
@@ -43,9 +41,7 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
     ApiOptions arg_2(arg_2_1);
 
     Local<Object> njs_arg_3 = info[3]->ToObject(context).ToLocalChecked();
-
     NJSItfHandleResponse *njs_ptr_arg_3 = static_cast<NJSItfHandleResponse *>(Nan::GetInternalFieldPointer(njs_arg_3,0));
-
     std::shared_ptr<NJSItfHandleResponse> arg_3(njs_ptr_arg_3);
 
 
