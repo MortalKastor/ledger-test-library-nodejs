@@ -14,7 +14,8 @@
     "gypbuildd": "node-gyp build --debug",
     "clean": "rimraf build node_modules prebuilds",
     "distclean": "npm run clean",
-    "gypconfigx": "node-gyp configure -- -f xcode"
+    "gypconfigx": "node-gyp configure -- -f xcode",
+    "lint": "eslint *.js"
   },
   "author": "Bellakrid",
   "license": "ISC",
@@ -28,6 +29,12 @@
     "prebuild-install": "^2.2.2"
   },
   "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "eslint": "^4.18.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
     "node-gyp": "^3.6.2",
     "prebuild": "^6.2.2",
     "rimraf": "^2.5.3",
