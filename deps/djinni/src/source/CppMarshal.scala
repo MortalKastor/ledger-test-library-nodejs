@@ -136,7 +136,7 @@ class CppMarshal(spec: Spec) extends Marshal(spec) {
   private def toCppType(ty: TypeRef, namespace: Option[String] = None, scopeSymbols: Seq[String] = Seq()): String =
     toCppType(ty.resolved, namespace, scopeSymbols)
 
-  private def toCppType(tm: MExpr, namespace: Option[String], scopeSymbols: Seq[String]): String = {
+  def toCppType(tm: MExpr, namespace: Option[String], scopeSymbols: Seq[String]): String = {
     def withNamespace(name: String): String = {
       // If an unqualified symbol needs to have its namespace added, this code assumes that the
       // namespace is the one that's defined for generated types (spec.cppNamespace).
