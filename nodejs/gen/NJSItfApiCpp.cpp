@@ -7,6 +7,44 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
+NAN_METHOD(NJSItfApi::create_api) {
+
+    //Check if method called with right number of arguments
+    if(info.Length() != 2)
+    {
+        return Nan::ThrowError("NJSItfApi::create_api needs 2 arguments");
+    }
+
+    Isolate *isolate = info.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
+
+    //Check if parameters have correct types
+    Local<Object> njs_arg_0 = info[0]->ToObject(context).ToLocalChecked();
+    NJSItfHttp *njs_ptr_arg_0 = static_cast<NJSItfHttp *>(Nan::GetInternalFieldPointer(njs_arg_0,0));
+    std::shared_ptr<NJSItfHttp> arg_0(njs_ptr_arg_0);
+
+    Local<Object> njs_arg_1 = info[1]->ToObject(context).ToLocalChecked();
+    NJSItfThreadDispatcher *njs_ptr_arg_1 = static_cast<NJSItfThreadDispatcher *>(Nan::GetInternalFieldPointer(njs_arg_1,0));
+    std::shared_ptr<NJSItfThreadDispatcher> arg_1(njs_ptr_arg_1);
+
+
+    //Unwrap current object and retrieve its Cpp Implementation
+    NJSItfApi* obj = Nan::ObjectWrap::Unwrap<NJSItfApi>(info.This());
+    auto cpp_impl = obj->getCppImpl();
+    if(!cpp_impl)
+    {
+        return Nan::ThrowError("NJSItfApi::create_api : implementation of Api is not valid");
+    }
+
+    auto result = cpp_impl->create_api(arg_0,arg_1);
+
+    //Wrap result in node object
+    auto arg_2 = NJSItfApi::wrap(result);
+
+
+    //Return result
+    info.GetReturnValue().Set(arg_2);
+}
 NAN_METHOD(NJSItfApi::observer_transaction_list) {
 
     //Check if method called with right number of arguments

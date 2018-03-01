@@ -79,81 +79,72 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
         var factory: Option[Interface.Method] = None
         var factoryFound = false
         for (m <- i.methods) {
-
           val methodName = m.ident.name
-          //TODO: static methods to be implemented
-          if (!m.static) {
-            w.w(s"NAN_METHOD($baseClassName::$methodName)").braced {
-              val argsLength = m.params.length
-              w.wl
-              w.wl("//Check if method called with right number of arguments")
-              w.wl(s"if(info.Length() != $argsLength)").braced {
-                val error = s""""$baseClassName::$methodName needs $argsLength arguments""""
-                w.wl(s"return Nan::ThrowError($error);")
-              }
-              //Check if we should define context
-              addContext(m, w, isNodeMode)
-              w.wl
-              w.wl("//Check if parameters have correct types")
-              //Retrieve all method’s parameter and test their types
-              val countArgs = checkAndCastTypes(ident, i, m, w)
-              var args: String = ""
-              for (i <- 0 to countArgs - 1) {
-                args = s"${args}arg_$i"
-                if (i < m.params.length - 1) {
-                  args = s"${args},"
-                }
-              }
-
-              w.wl
-              w.wl("//Unwrap current object and retrieve its Cpp Implementation")
-              w.wl(s"$baseClassName* obj = Nan::ObjectWrap::Unwrap<$baseClassName>(info.This());")
-              w.wl(s"auto cpp_impl = obj->getCppImpl();")
-
-              //Test if implementation is null
-              w.wl(s"if(!cpp_impl)").braced {
-                val error = s""""$baseClassName::$methodName : implementation of $cppClassName is not valid""""
-                w.wl(s"return Nan::ThrowError($error);")
-              }
-
-              val cppRet = cppMarshal.returnType(m.ret)
-              if (m.ret.isDefined && cppRet != "void") {
-                w.wl
-                w.wl(s"auto result = cpp_impl->$methodName($args);")
-                w.wl
-                w.wl("//Wrap result in node object")
-                marshal.fromCppArgument(m.ret.get.resolved, s"arg_$countArgs", "result", w)
-                w.wl
-                w.wl("//Return result")
-                w.wl(s"info.GetReturnValue().Set(arg_$countArgs);")
-              } else {
-                w.wl(s"cpp_impl->$methodName($args);")
+          w.w(s"NAN_METHOD($baseClassName::$methodName)").braced {
+            val argsLength = m.params.length
+            w.wl
+            w.wl("//Check if method called with right number of arguments")
+            w.wl(s"if(info.Length() != $argsLength)").braced {
+              val error = s""""$baseClassName::$methodName needs $argsLength arguments""""
+              w.wl(s"return Nan::ThrowError($error);")
+            }
+            //Check if we should define context
+            addContext(m, w, isNodeMode)
+            w.wl
+            w.wl("//Check if parameters have correct types")
+            //Retrieve all method’s parameter and test their types
+            val countArgs = checkAndCastTypes(ident, i, m, w)
+            var args: String = ""
+            for (i <- 0 to countArgs - 1) {
+              args = s"${args}arg_$i"
+              if (i < m.params.length - 1) {
+                args = s"${args},"
               }
             }
-          } else if (!factoryFound) {
-            //Get factory method if it exists
+
+            w.wl
+            w.wl("//Unwrap current object and retrieve its Cpp Implementation")
+            w.wl(s"$baseClassName* obj = Nan::ObjectWrap::Unwrap<$baseClassName>(info.This());")
+            w.wl(s"auto cpp_impl = obj->getCppImpl();")
+
+            //Test if implementation is null
+            w.wl(s"if(!cpp_impl)").braced {
+              val error = s""""$baseClassName::$methodName : implementation of $cppClassName is not valid""""
+              w.wl(s"return Nan::ThrowError($error);")
+            }
+
+            val cppRet = cppMarshal.returnType(m.ret)
+            if (m.ret.isDefined && cppRet != "void") {
+              w.wl
+              w.wl(s"auto result = cpp_impl->$methodName($args);")
+              w.wl
+              w.wl("//Wrap result in node object")
+              marshal.fromCppArgument(m.ret.get.resolved, s"arg_$countArgs", "result", w)
+              w.wl
+              w.wl("//Return result")
+              w.wl(s"info.GetReturnValue().Set(arg_$countArgs);")
+            } else {
+              w.wl(s"cpp_impl->$methodName($args);")
+            }
+          }
+          //Get factory method if it exists (will be used for Nan::New method)
+          if (!factoryFound) {
             factoryFound = m.ret.exists { x =>
               val returnTypeName = cppMarshal.paramType(x.resolved, true)
-              returnTypeName.contains(cppClassName)
+              returnTypeName.equals(s"std::shared_ptr<$cppClassName>")
             }
             if (factoryFound) {
               factory = Some(m)
             }
           }
         }
-
-        //create Nan new method
         w.wl
         createNanNewMethod(ident, i, factory, w)
-
         w.wl
         createWrapMethod(ident, i, w)
-
-        //create Initialize method
         w.wl
         createInitializeMethod(ident, i, w)
       })
-
     }
   }
 

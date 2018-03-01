@@ -84,20 +84,13 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
             }
           }
         }
-
-        //create addRef Method
         w.wl
         createRefMethods(ident, i, w)
-
-        //create Nan new method
         w.wl
         createNanNewMethod(ident, i, None, w)
-
-        //create Initialize method
         w.wl
         createInitializeMethod(ident, i, w)
       })
-
     }
   }
 
@@ -220,7 +213,7 @@ class NodeJsGenerator(spec: Spec) extends Generator(spec) {
           w.wlOutdent("private:")
           for (m <- i.methods) {
             val methodName = m.ident.name
-            if (!m.static && !nodeMode) {
+            if (!nodeMode) {
               writeDoc(w, m.doc)
               w.wl(s"static NAN_METHOD($methodName);")
               w.wl

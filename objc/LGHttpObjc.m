@@ -17,7 +17,7 @@
 
     [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         if (error) {
-            [callback onNetworkError];
+            [callback onNetworkError:[error localizedDescription]];
         } else {
             int16_t httpCode = [(NSHTTPURLResponse*) response statusCode];
             NSString * strData = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
