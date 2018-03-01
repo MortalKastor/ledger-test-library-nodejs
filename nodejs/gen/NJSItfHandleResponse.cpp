@@ -70,7 +70,6 @@ NAN_METHOD(NJSItfHandleResponse::New) {
 }
 
 void NJSItfHandleResponse::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfHandleResponse::New);

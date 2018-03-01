@@ -87,7 +87,6 @@ NAN_METHOD(NJSItfExecutionContext::New) {
 }
 
 void NJSItfExecutionContext::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfExecutionContext::New);

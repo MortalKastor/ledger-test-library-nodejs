@@ -156,7 +156,6 @@ NAN_METHOD(NJSItfThreadDispatcher::New) {
 }
 
 void NJSItfThreadDispatcher::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfThreadDispatcher::New);

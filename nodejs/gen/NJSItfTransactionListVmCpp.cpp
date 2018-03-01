@@ -33,7 +33,6 @@ NAN_METHOD(NJSItfTransactionListVm::count) {
     //Return result
     info.GetReturnValue().Set(arg_0);
 }
-
 NAN_METHOD(NJSItfTransactionListVm::getTransaction) {
 
     //Check if method called with right number of arguments
@@ -90,7 +89,6 @@ NAN_METHOD(NJSItfTransactionListVm::New) {
 Nan::Persistent<ObjectTemplate> NJSItfTransactionListVm::TransactionListVm_prototype;
 
 Handle<Object> NJSItfTransactionListVm::wrap(const std::shared_ptr<ledgerapp_gen::TransactionListVm> &object) {
-
     Local<ObjectTemplate> local_prototype = Nan::New(TransactionListVm_prototype);
 
     Handle<Object> obj;
@@ -112,7 +110,6 @@ Handle<Object> NJSItfTransactionListVm::wrap(const std::shared_ptr<ledgerapp_gen
 }
 
 void NJSItfTransactionListVm::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfTransactionListVm::New);

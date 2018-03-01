@@ -7,7 +7,6 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 NAN_METHOD(NJSItfApi::observer_transaction_list) {
 
     //Check if method called with right number of arguments
@@ -35,7 +34,6 @@ NAN_METHOD(NJSItfApi::observer_transaction_list) {
     //Return result
     info.GetReturnValue().Set(arg_0);
 }
-
 NAN_METHOD(NJSItfApi::get_transactions) {
 
     //Check if method called with right number of arguments
@@ -114,7 +112,6 @@ NAN_METHOD(NJSItfApi::New) {
 Nan::Persistent<ObjectTemplate> NJSItfApi::Api_prototype;
 
 Handle<Object> NJSItfApi::wrap(const std::shared_ptr<ledgerapp_gen::Api> &object) {
-
     Local<ObjectTemplate> local_prototype = Nan::New(Api_prototype);
 
     Handle<Object> obj;
@@ -136,7 +133,6 @@ Handle<Object> NJSItfApi::wrap(const std::shared_ptr<ledgerapp_gen::Api> &object
 }
 
 void NJSItfApi::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfApi::New);

@@ -26,10 +26,8 @@ NAN_METHOD(NJSItfHttpCallback::on_network_error) {
     {
         return Nan::ThrowError("NJSItfHttpCallback::on_network_error : implementation of HttpCallback is not valid");
     }
-
     cpp_impl->on_network_error(arg_0);
 }
-
 NAN_METHOD(NJSItfHttpCallback::on_success) {
 
     //Check if method called with right number of arguments
@@ -50,8 +48,7 @@ NAN_METHOD(NJSItfHttpCallback::on_success) {
     {
         return Nan::ThrowError("NJSItfHttpCallback::on_success : implementation of HttpCallback is not valid");
     }
-
-    cpp_impl->on_success(arg_0, arg_1);
+    cpp_impl->on_success(arg_0,arg_1);
 }
 
 NAN_METHOD(NJSItfHttpCallback::New) {
@@ -75,7 +72,6 @@ NAN_METHOD(NJSItfHttpCallback::New) {
 Nan::Persistent<ObjectTemplate> NJSItfHttpCallback::HttpCallback_prototype;
 
 Handle<Object> NJSItfHttpCallback::wrap(const std::shared_ptr<ledgerapp_gen::HttpCallback> &object) {
-
     Local<ObjectTemplate> local_prototype = Nan::New(HttpCallback_prototype);
 
     Handle<Object> obj;
@@ -97,7 +93,6 @@ Handle<Object> NJSItfHttpCallback::wrap(const std::shared_ptr<ledgerapp_gen::Htt
 }
 
 void NJSItfHttpCallback::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfHttpCallback::New);

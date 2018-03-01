@@ -24,7 +24,6 @@ NAN_METHOD(NJSItfRunnable::run) {
     {
         return Nan::ThrowError("NJSItfRunnable::run : implementation of Runnable is not valid");
     }
-
     cpp_impl->run();
 }
 
@@ -49,7 +48,6 @@ NAN_METHOD(NJSItfRunnable::New) {
 Nan::Persistent<ObjectTemplate> NJSItfRunnable::Runnable_prototype;
 
 Handle<Object> NJSItfRunnable::wrap(const std::shared_ptr<ledgerapp_gen::Runnable> &object) {
-
     Local<ObjectTemplate> local_prototype = Nan::New(Runnable_prototype);
 
     Handle<Object> obj;
@@ -71,7 +69,6 @@ Handle<Object> NJSItfRunnable::wrap(const std::shared_ptr<ledgerapp_gen::Runnabl
 }
 
 void NJSItfRunnable::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfRunnable::New);

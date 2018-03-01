@@ -18,10 +18,10 @@
 
 using namespace v8;
 using namespace node;
+
 static void initAll(Local<Object> target)
 {
     Nan::HandleScope scope;
-
     NJSItfTransactionListVm::Initialize(target);
     NJSItfTransactionListVmObserver::Initialize(target);
     NJSItfHandleResponse::Initialize(target);
@@ -34,5 +34,4 @@ static void initAll(Local<Object> target)
     NJSItfHttp::Initialize(target);
     NJSItfApi::Initialize(target);
 }
-
 NODE_MODULE(ledgerapp_nodejs,initAll);

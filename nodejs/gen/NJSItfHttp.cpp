@@ -79,7 +79,6 @@ NAN_METHOD(NJSItfHttp::New) {
 }
 
 void NJSItfHttp::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfHttp::New);

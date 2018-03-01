@@ -66,7 +66,6 @@ NAN_METHOD(NJSItfTransactionListVmObserver::New) {
 }
 
 void NJSItfTransactionListVmObserver::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfTransactionListVmObserver::New);

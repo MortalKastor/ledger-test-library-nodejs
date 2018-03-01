@@ -52,10 +52,8 @@ NAN_METHOD(NJSItfTransactionListVmHandle::start) {
     {
         return Nan::ThrowError("NJSItfTransactionListVmHandle::start : implementation of TransactionListVmHandle is not valid");
     }
-
-    cpp_impl->start(arg_0, arg_1, arg_2, arg_3);
+    cpp_impl->start(arg_0,arg_1,arg_2,arg_3);
 }
-
 NAN_METHOD(NJSItfTransactionListVmHandle::stop) {
 
     //Check if method called with right number of arguments
@@ -73,7 +71,6 @@ NAN_METHOD(NJSItfTransactionListVmHandle::stop) {
     {
         return Nan::ThrowError("NJSItfTransactionListVmHandle::stop : implementation of TransactionListVmHandle is not valid");
     }
-
     cpp_impl->stop();
 }
 
@@ -98,7 +95,6 @@ NAN_METHOD(NJSItfTransactionListVmHandle::New) {
 Nan::Persistent<ObjectTemplate> NJSItfTransactionListVmHandle::TransactionListVmHandle_prototype;
 
 Handle<Object> NJSItfTransactionListVmHandle::wrap(const std::shared_ptr<ledgerapp_gen::TransactionListVmHandle> &object) {
-
     Local<ObjectTemplate> local_prototype = Nan::New(TransactionListVmHandle_prototype);
 
     Handle<Object> obj;
@@ -120,7 +116,6 @@ Handle<Object> NJSItfTransactionListVmHandle::wrap(const std::shared_ptr<ledgera
 }
 
 void NJSItfTransactionListVmHandle::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfTransactionListVmHandle::New);

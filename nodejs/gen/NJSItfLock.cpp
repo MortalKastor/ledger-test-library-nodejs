@@ -103,7 +103,6 @@ NAN_METHOD(NJSItfLock::New) {
 }
 
 void NJSItfLock::Initialize(Local<Object> target) {
-
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> func_template = Nan::New<FunctionTemplate>(NJSItfLock::New);
