@@ -218,6 +218,14 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
 
     }
 
+    def toSupportedCppNativeTypes(inputType: String): String = {
+      inputType match {
+        case "int8_t" | "int16_t" => "int32_t"
+        case "float" => "double"
+        case _ => inputType
+      }
+    }
+
     val cppType = super.paramType(tm, needRef = true)
     val nodeType = paramType(tm)
 
@@ -234,7 +242,9 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
       case MMap => toCppContainer("Map")
       case d: MDef =>
         d.body match {
-          case e: Enum => wr.wl(withNamespace(idNode.enumType(d.name)))
+          case e: Enum =>
+            val castToEnumType = s"(${spec.cppNamespace}::${idCpp.enumType(d.name)})"
+            wr.wl(s"auto $converted = ${castToEnumType}Nan::To<int>($converting).FromJust();")
           case r: Record =>
             // Field definitions.
             var listOfRecordArgs = new ListBuffer[String]()
@@ -315,7 +325,7 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
       case MMap => fromCppContainer("Map")
       case d: MDef =>
         d.body match {
-          case e: Enum => wr.wl(simpleCheckedCast("Object"))
+          case e: Enum => wr.wl(s"auto $converted = Nan::New<Integer>((int)$converting);")
           case r: Record =>
             // Field definitions.
             wr.wl(s"auto $converted = Nan::New<Object>();")
@@ -343,14 +353,6 @@ class NodeJsMarshal(spec: Spec) extends CppMarshal(spec) {
     }
 
     base(tm.base)
-  }
-
-  private def toSupportedCppNativeTypes(inputType: String): String = {
-    inputType match {
-      case "int8_t" | "int16_t" => "int32_t"
-      case "float" => "double"
-      case _ => inputType
-    }
   }
 }
 
