@@ -7,7 +7,6 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getSerialExecutionContext(const std::string & name)
 {
 
@@ -15,7 +14,6 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getSerialExecutionCont
     Local<Context> context = Nan::GetCurrentContext();
     //Wrap parameters
     auto arg_0 = Nan::New<String>(name).ToLocalChecked();
-
     Handle<Value> args[1] = {arg_0};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -44,7 +42,6 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getThreadPoolExecution
     Local<Context> context = Nan::GetCurrentContext();
     //Wrap parameters
     auto arg_0 = Nan::New<String>(name).ToLocalChecked();
-
     Handle<Value> args[1] = {arg_0};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -72,7 +69,6 @@ std::shared_ptr<ExecutionContext> NJSItfThreadDispatcher::getMainExecutionContex
     Nan::HandleScope scope;
     Local<Context> context = Nan::GetCurrentContext();
     //Wrap parameters
-
     Handle<Value> args[0] = {};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -100,7 +96,6 @@ std::shared_ptr<Lock> NJSItfThreadDispatcher::newLock()
     Nan::HandleScope scope;
     Local<Context> context = Nan::GetCurrentContext();
     //Wrap parameters
-
     Handle<Value> args[0] = {};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -121,6 +116,7 @@ std::shared_ptr<Lock> NJSItfThreadDispatcher::newLock()
 
     return fResult_newLock;
 }
+
 NAN_METHOD(NJSItfThreadDispatcher::addRef) {
 
     NJSItfThreadDispatcher *obj = Nan::ObjectWrap::Unwrap<NJSItfThreadDispatcher>(info.This());
@@ -134,7 +130,6 @@ NAN_METHOD(NJSItfThreadDispatcher::removeRef) {
 }
 
 NAN_METHOD(NJSItfThreadDispatcher::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

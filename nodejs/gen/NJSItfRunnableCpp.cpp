@@ -29,7 +29,6 @@ NAN_METHOD(NJSItfRunnable::run) {
 }
 
 NAN_METHOD(NJSItfRunnable::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

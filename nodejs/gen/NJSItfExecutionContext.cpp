@@ -7,12 +7,10 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 void NJSItfExecutionContext::execute(const std::shared_ptr<Runnable> & runnable)
 {
     //Wrap parameters
     auto arg_0 = NJSItfRunnable::wrap(runnable);
-
 
     Handle<Value> args[1] = {arg_0};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
@@ -35,8 +33,7 @@ void NJSItfExecutionContext::delay(const std::shared_ptr<Runnable> & runnable, i
     auto arg_0 = NJSItfRunnable::wrap(runnable);
 
     auto arg_1 = Nan::New<Number>(millis);
-
-    Handle<Value> args[2] = {arg_0, arg_1};
+    Handle<Value> args[2] = {arg_0,arg_1};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
     {
@@ -50,6 +47,7 @@ void NJSItfExecutionContext::delay(const std::shared_ptr<Runnable> & runnable, i
         Nan::ThrowError("NJSItfExecutionContext::delay call failed");
     }
 }
+
 NAN_METHOD(NJSItfExecutionContext::addRef) {
 
     NJSItfExecutionContext *obj = Nan::ObjectWrap::Unwrap<NJSItfExecutionContext>(info.This());
@@ -63,7 +61,6 @@ NAN_METHOD(NJSItfExecutionContext::removeRef) {
 }
 
 NAN_METHOD(NJSItfExecutionContext::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

@@ -55,7 +55,6 @@ NAN_METHOD(NJSItfHttpCallback::on_success) {
 }
 
 NAN_METHOD(NJSItfHttpCallback::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

@@ -7,7 +7,6 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 void NJSItfHttp::get(const std::string & url, const std::experimental::optional<std::vector<HttpHeader>> & header, const std::shared_ptr<HttpCallback> & callback)
 {
     //Wrap parameters
@@ -26,8 +25,7 @@ void NJSItfHttp::get(const std::string & url, const std::experimental::optional<
 
     auto arg_2 = NJSItfHttpCallback::wrap(callback);
 
-
-    Handle<Value> args[3] = {arg_0, arg_1, arg_2};
+    Handle<Value> args[3] = {arg_0,arg_1,arg_2};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
     {
@@ -41,6 +39,7 @@ void NJSItfHttp::get(const std::string & url, const std::experimental::optional<
         Nan::ThrowError("NJSItfHttp::get call failed");
     }
 }
+
 NAN_METHOD(NJSItfHttp::addRef) {
 
     NJSItfHttp *obj = Nan::ObjectWrap::Unwrap<NJSItfHttp>(info.This());
@@ -54,7 +53,6 @@ NAN_METHOD(NJSItfHttp::removeRef) {
 }
 
 NAN_METHOD(NJSItfHttp::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

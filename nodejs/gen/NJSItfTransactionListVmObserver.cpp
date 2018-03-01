@@ -7,12 +7,10 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 void NJSItfTransactionListVmObserver::on_update(const std::shared_ptr<TransactionListVm> & new_data)
 {
     //Wrap parameters
     auto arg_0 = NJSItfTransactionListVm::wrap(new_data);
-
 
     Handle<Value> args[1] = {arg_0};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
@@ -28,6 +26,7 @@ void NJSItfTransactionListVmObserver::on_update(const std::shared_ptr<Transactio
         Nan::ThrowError("NJSItfTransactionListVmObserver::on_update call failed");
     }
 }
+
 NAN_METHOD(NJSItfTransactionListVmObserver::addRef) {
 
     NJSItfTransactionListVmObserver *obj = Nan::ObjectWrap::Unwrap<NJSItfTransactionListVmObserver>(info.This());
@@ -41,7 +40,6 @@ NAN_METHOD(NJSItfTransactionListVmObserver::removeRef) {
 }
 
 NAN_METHOD(NJSItfTransactionListVmObserver::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

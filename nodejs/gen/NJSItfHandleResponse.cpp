@@ -7,7 +7,6 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 void NJSItfHandleResponse::respond(const Response & result)
 {
     //Wrap parameters
@@ -16,7 +15,6 @@ void NJSItfHandleResponse::respond(const Response & result)
     Nan::DefineOwnProperty(arg_0, Nan::New<String>("error").ToLocalChecked(), arg_0_1);
     auto arg_0_2 = Nan::New<String>(result.result).ToLocalChecked();
     Nan::DefineOwnProperty(arg_0, Nan::New<String>("result").ToLocalChecked(), arg_0_2);
-
 
     Handle<Value> args[1] = {arg_0};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
@@ -32,6 +30,7 @@ void NJSItfHandleResponse::respond(const Response & result)
         Nan::ThrowError("NJSItfHandleResponse::respond call failed");
     }
 }
+
 NAN_METHOD(NJSItfHandleResponse::addRef) {
 
     NJSItfHandleResponse *obj = Nan::ObjectWrap::Unwrap<NJSItfHandleResponse>(info.This());
@@ -45,7 +44,6 @@ NAN_METHOD(NJSItfHandleResponse::removeRef) {
 }
 
 NAN_METHOD(NJSItfHandleResponse::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

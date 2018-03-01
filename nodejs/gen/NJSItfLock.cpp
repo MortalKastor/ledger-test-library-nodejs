@@ -7,11 +7,9 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
-
 void NJSItfLock::lock()
 {
     //Wrap parameters
-
     Handle<Value> args[0] = {};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -30,7 +28,6 @@ void NJSItfLock::lock()
 bool NJSItfLock::tryLock()
 {
     //Wrap parameters
-
     Handle<Value> args[0] = {};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -52,7 +49,6 @@ bool NJSItfLock::tryLock()
 void NJSItfLock::unlock()
 {
     //Wrap parameters
-
     Handle<Value> args[0] = {};
     Local<Object> local_njs_impl = Nan::New<Object>(njs_impl);
     if(!local_njs_impl->IsObject())
@@ -67,6 +63,7 @@ void NJSItfLock::unlock()
         Nan::ThrowError("NJSItfLock::unlock call failed");
     }
 }
+
 NAN_METHOD(NJSItfLock::addRef) {
 
     NJSItfLock *obj = Nan::ObjectWrap::Unwrap<NJSItfLock>(info.This());
@@ -80,7 +77,6 @@ NAN_METHOD(NJSItfLock::removeRef) {
 }
 
 NAN_METHOD(NJSItfLock::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

@@ -70,7 +70,6 @@ NAN_METHOD(NJSItfTransactionListVm::getTransaction) {
 }
 
 NAN_METHOD(NJSItfTransactionListVm::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {

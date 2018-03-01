@@ -72,7 +72,6 @@ NAN_METHOD(NJSItfApi::get_transactions) {
 }
 
 NAN_METHOD(NJSItfApi::New) {
-
     //Only new allowed
     if(!info.IsConstructCall())
     {
@@ -99,7 +98,7 @@ NAN_METHOD(NJSItfApi::New) {
 
 
     //Call factory
-    auto cpp_instance = ledgerapp_gen::Api::create_api(arg_0, arg_1);
+    auto cpp_instance = ledgerapp_gen::Api::create_api(arg_0,arg_1);
     NJSItfApi *node_instance = new NJSItfApi(cpp_instance);
 
     if(node_instance)

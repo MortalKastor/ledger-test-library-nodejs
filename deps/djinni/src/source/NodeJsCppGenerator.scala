@@ -14,8 +14,8 @@ class NodeJsCppGenerator(spec: Spec) extends NodeJsGenerator(spec) {
   override def generate(idl: Seq[TypeDecl]): Unit = {
 
     super.generate(idl)
-    //Create file with all interfaces
 
+    //Create file with all interfaces
     val fileName = spec.nodePackage + ".cpp"
     createFile(spec.nodeOutFolder.get, fileName, { (w: writer.IndentWriter) =>
 
